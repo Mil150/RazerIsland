@@ -15,7 +15,9 @@ namespace RazerIsland.UI;
 /// <summary>Вікно налаштувань і майстер першого запуску.</summary>
 public partial class SettingsWindow : Window
 {
-    private static readonly string[] PageTitles = ["Вітання", "Батарея", "Вигляд", "Погода", "Календар", "Мікрофон Discord", "Система", "Готово"];
+    private static string[] PageTitles => L.En
+        ? ["Welcome", "Battery", "Appearance", "Weather", "Calendar", "Discord microphone", "System", "Done"]
+        : ["Вітання", "Батарея", "Вигляд", "Погода", "Календар", "Мікрофон Discord", "Система", "Готово"];
     private const int LastPage = 7;
 
     private readonly App _app;
@@ -34,7 +36,7 @@ public partial class SettingsWindow : Window
         InitializeComponent();
         _pages = [P0, P1, P2, P3, P4, P5, P6, P7];
         _nav = [N1, N2, N3, N4, N5, N6];
-        VersionText.Text = "версія " + AppInfo.Version;
+        VersionText.Text = L.T("версія ", "version ") + AppInfo.Version;
         try { Icon = BitmapFrame.Create(new Uri("pack://application:,,,/Assets/app.ico")); } catch { }
 
         // посилання відкриваються в браузері
@@ -53,6 +55,8 @@ public partial class SettingsWindow : Window
 
         BtnBatRefresh.Click += (_, _) => { _app.RescanDevices(); UpdateBatteryStatus(); };
 
+        RbLangUk.Checked += (_, _) => { if (!_loading) { SaveCalendarQuietly(); _app.SetLanguage("uk"); } };
+        RbLangEn.Checked += (_, _) => { if (!_loading) { SaveCalendarQuietly(); _app.SetLanguage("en"); } };
         RbIsland.Checked += (_, _) => { if (!_loading) { _app.SetMode("strip", true); CbPin.IsEnabled = false; } };
         RbCard.Checked += (_, _) => { if (!_loading) { _app.SetMode("full", true); CbPin.IsEnabled = true; } };
         CbTop.Click += (_, _) => _app.SetTopmost(CbTop.IsChecked == true);
@@ -80,15 +84,20 @@ public partial class SettingsWindow : Window
         {
             var id = TbDiscordId.Text.Trim();
             var sec = PbDiscordSecret.Password.Trim();
-            if (id.Length == 0 || sec.Length == 0) { DiscordStatus.Text = "Встав і Client ID, і Client Secret."; return; }
+            if (id.Length == 0 || sec.Length == 0)
+            {
+                DiscordStatus.Text = L.T("Встав і Client ID, і Client Secret.", "Paste both the Client ID and the Client Secret.");
+                return;
+            }
             _app.ConnectDiscord(id, sec);
-            DiscordStatus.Text = "Підключаюся… Зараз у Discord з'явиться вікно — натисни «Авторизувати».";
+            DiscordStatus.Text = L.T("Підключаюся… Зараз у Discord з'явиться вікно — натисни «Авторизувати».",
+                                     "Connecting… A window will appear in Discord — click “Authorize”.");
         };
         BtnDiscordOff.Click += (_, _) =>
         {
             _app.DisconnectDiscord();
             PbDiscordSecret.Password = "";
-            DiscordStatus.Text = "Не підключено.";
+            DiscordStatus.Text = L.T("Не підключено.", "Not connected.");
         };
 
         CbAuto.Click += (_, _) => { Autostart.Set(CbAuto.IsChecked == true); CbAuto.IsChecked = Autostart.IsEnabled; };
@@ -126,7 +135,7 @@ public partial class SettingsWindow : Window
         StepBar.Visibility = wiz;
         BtnBack.Visibility = BtnNext.Visibility = BtnSkip.Visibility = wiz;
         BtnClose.Visibility = notWiz;
-        Title = wizard ? $"{AppInfo.Name} — перше налаштування" : $"{AppInfo.Name} — налаштування";
+        Title = AppInfo.Name + (wizard ? L.T(" — перше налаштування", " — first-time setup") : L.T(" — налаштування", " — settings"));
         LoadValues();
         _page = -1;
         if (!IsVisible) Show();
@@ -143,10 +152,10 @@ public partial class SettingsWindow : Window
         for (int k = 1; k <= 6; k++) _nav[k - 1].Background = Palette.Brush(k == i ? "#2A2D33" : "#00000000");
         if (_wizard)
         {
-            StepText.Text = $"КРОК {i + 1} З 8 · {PageTitles[i].ToUpper()}";
+            StepText.Text = $"{L.T("КРОК", "STEP")} {i + 1} {L.T("З", "OF")} 8 · {PageTitles[i].ToUpper()}";
             StepFill.Width = Math.Max(6, StepBar.ActualWidth * (i + 1) / 8);
             BtnBack.IsEnabled = i > 0;
-            BtnNext.Content = i == LastPage ? "Почати" : i == 0 ? "Почнімо" : "Далі";
+            BtnNext.Content = i == LastPage ? L.T("Почати", "Start") : i == 0 ? L.T("Почнімо", "Let’s go") : L.T("Далі", "Next");
             BtnSkip.Visibility = i < LastPage ? Visibility.Visible : Visibility.Collapsed;
         }
         if (i == 1) UpdateBatteryStatus();
@@ -168,6 +177,8 @@ public partial class SettingsWindow : Window
         try
         {
             LoadBehavior();
+            RbLangUk.IsChecked = !L.En;
+            RbLangEn.IsChecked = L.En;
             var op = S.SafeBgOpacity;
             SlOpacity.Value = Math.Round(op * 100);
             LblOpacity.Text = $"{Math.Round(op * 100)}%";
@@ -175,7 +186,7 @@ public partial class SettingsWindow : Window
             RbTrayIcon.IsChecked = !num;
             RbTrayNum.IsChecked = num;
             TbCity.Text = S.WeatherCity;
-            CityStatus.Text = "Зараз: " + S.WeatherCity;
+            CityStatus.Text = L.T("Зараз: ", "Current: ") + S.WeatherCity;
             TbCal.Text = string.Join("\r\n", CalendarService.GetUrls());
             TbDiscordId.Text = S.DiscordClientId;
             PbDiscordSecret.Password = S.DiscordClientSecret;
@@ -208,7 +219,8 @@ public partial class SettingsWindow : Window
         var lines = _app.KnownDevices.OrderBy(d => d.Name).Select(d => $"\u2713  {d.Name} — {d.Level}%").ToList();
         if (lines.Count == 0)
         {
-            BatStatus.Text = "Поки не бачу даних від Synapse.\nПереконайся, що Razer Synapse 4 запущений, а мишка й навушники ввімкнені, і натисни «Перевірити знову».";
+            BatStatus.Text = L.T("Поки не бачу даних від Synapse.\nПереконайся, що Razer Synapse 4 запущений, а мишка й навушники ввімкнені, і натисни «Перевірити знову».",
+                                 "No data from Synapse yet.\nMake sure Razer Synapse 4 is running and your mouse and headset are on, then click “Check again”.");
             BatStatus.Foreground = Palette.Brush("#FFB347");
         }
         else
@@ -223,21 +235,25 @@ public partial class SettingsWindow : Window
         var s = _app.DiscordState;
         return s.Status switch
         {
-            "ok" => "\u2713 Підключено. Стан мікрофона відстежується.",
-            "nodiscord" => "Discord не запущений — підключення відбудеться автоматично, коли він запуститься.",
-            "authorizing" => "Чекаю підтвердження: відкрий Discord і натисни «Авторизувати».",
-            "needauth" => "Потрібно підключити знову: натисни «Підключити».",
-            "denied" => "Доступ не надано: " + s.LastError,
-            "autherror" => "Помилка: " + s.LastError,
-            "notconfigured" => "Не підключено.",
-            _ => s.HasClient ? "Підключаюся…" : "Не підключено.",
+            "ok" => "\u2713 " + L.T("Підключено. Стан мікрофона відстежується.", "Connected. Microphone state is being tracked."),
+            "nodiscord" => L.T("Discord не запущений — підключення відбудеться автоматично, коли він запуститься.",
+                               "Discord is not running — it will connect automatically when Discord starts."),
+            "authorizing" => L.T("Чекаю підтвердження: відкрий Discord і натисни «Авторизувати».", "Waiting for approval: open Discord and click “Authorize”."),
+            "needauth" => L.T("Потрібно підключити знову: натисни «Підключити».", "Needs reconnecting: click “Connect”."),
+            "denied" => L.T("Доступ не надано: ", "Access denied: ") + s.LastError,
+            "autherror" => L.T("Помилка: ", "Error: ") + s.LastError,
+            "notconfigured" => L.T("Не підключено.", "Not connected."),
+            _ => s.HasClient ? L.T("Підключаюся…", "Connecting…") : L.T("Не підключено.", "Not connected."),
         };
     }
 
     private void UpdateSysInfo()
     {
-        SysInfo.Text = $"Версія: {AppInfo.Version}\nПрограма: {AppInfo.ExePath}\nНалаштування й журнал помилок: {AppInfo.DataDir}\n"
-                     + $"Ярлики «{AppInfo.Name}» і «{AppInfo.Name} — налаштування» є в меню «Пуск».";
+        SysInfo.Text = L.En
+            ? $"Version: {AppInfo.Version}\nProgram: {AppInfo.ExePath}\nSettings and error log: {AppInfo.DataDir}\n"
+              + $"The “{AppInfo.Name}” and “{AppInfo.Name} — Settings” shortcuts are in the Start menu."
+            : $"Версія: {AppInfo.Version}\nПрограма: {AppInfo.ExePath}\nНалаштування й журнал помилок: {AppInfo.DataDir}\n"
+              + $"Ярлики «{AppInfo.Name}» і «{AppInfo.Name} — налаштування» є в меню «Пуск».";
     }
 
     private bool SaveCalendar() => _app.Calendar.SaveUrls(TbCal.Text.Split('\n'));
@@ -254,7 +270,7 @@ public partial class SettingsWindow : Window
         var cal = _app.Calendar;
         if (urls.Count == 0)
         {
-            CalStatus.Text = "Календар ще не підключено.";
+            CalStatus.Text = L.T("Календар ще не підключено.", "No calendar connected yet.");
             CalStatus.Foreground = Palette.Brush("#8A8F98");
             return;
         }
@@ -262,17 +278,20 @@ public partial class SettingsWindow : Window
         {
             if (cal.LastError)
             {
-                CalStatus.Text = "Не вдалося завантажити. Перевір посилання та інтернет.";
+                CalStatus.Text = L.T("Не вдалося завантажити. Перевір посилання та інтернет.", "Could not load. Check the link and your internet connection.");
                 CalStatus.Foreground = Palette.Brush(Palette.Red);
             }
             else
             {
-                CalStatus.Text = "Завантажую…";
+                CalStatus.Text = L.T("Завантажую…", "Loading…");
                 CalStatus.Foreground = Palette.Brush("#8A8F98");
             }
             return;
         }
-        CalStatus.Text = $"\u2713 Підключено календарів: {cal.LoadedCount} з {urls.Count}. Подій на найближчий тиждень: {cal.AllEvents.Count()}.";
+        int events = cal.AllEvents.Count();
+        CalStatus.Text = "\u2713 " + (L.En
+            ? $"Calendars connected: {cal.LoadedCount} of {urls.Count}. Events in the coming week: {events}."
+            : $"Підключено календарів: {cal.LoadedCount} з {urls.Count}. Подій на найближчий тиждень: {events}.");
         CalStatus.Foreground = Palette.Brush(Palette.Green);
     }
 
@@ -280,18 +299,18 @@ public partial class SettingsWindow : Window
     {
         var name = TbCity.Text.Trim();
         if (name.Length == 0) return;
-        CityStatus.Text = "Шукаю…";
+        CityStatus.Text = L.T("Шукаю…", "Searching…");
         try
         {
             var place = await _app.SetWeatherCityAsync(name);
             if (place is null)
             {
-                CityStatus.Text = "Місто не знайдено. Спробуй латиницею, наприклад: Riihimaki.";
+                CityStatus.Text = L.T("Місто не знайдено. Спробуй латиницею, наприклад: Riihimaki.", "City not found. Try another spelling, e.g. Riihimaki.");
                 return;
             }
-            CityStatus.Text = $"\u2713 Збережено: {place.Name}{(place.Country.Length > 0 ? ", " + place.Country : "")}";
+            CityStatus.Text = $"\u2713 {L.T("Збережено", "Saved")}: {place.Name}{(place.Country.Length > 0 ? ", " + place.Country : "")}";
             TbCity.Text = place.Name;
         }
-        catch { CityStatus.Text = "Не вдалося знайти місто (немає інтернету?)."; }
+        catch { CityStatus.Text = L.T("Не вдалося знайти місто (немає інтернету?).", "Could not search for the city (no internet?)."); }
     }
 }

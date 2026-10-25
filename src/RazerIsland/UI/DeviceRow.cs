@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using RazerIsland.Battery;
+using RazerIsland.Core;
 
 namespace RazerIsland.UI;
 
@@ -26,7 +27,7 @@ public sealed class DeviceRow
 
         _icon = new TextBlock
         {
-            FontFamily = Glyphs.IconFont, FontSize = 22, Foreground = Palette.Brush("#D6D9DE"),
+            FontFamily = Glyphs.IconFont, FontSize = 22, Foreground = Palette.Brush(Palette.DeviceIconColor(dev.Brand)),
             Text = Glyphs.ForCategory(dev.Category), VerticalAlignment = VerticalAlignment.Center,
             Margin = new Thickness(0, 0, 12, 0),
         };
@@ -60,7 +61,7 @@ public sealed class DeviceRow
         Mini = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(8, 0, 8, 0) };
         _mIcon = new TextBlock
         {
-            FontFamily = Glyphs.IconFont, FontSize = 13, Foreground = Palette.Brush("#D6D9DE"),
+            FontFamily = Glyphs.IconFont, FontSize = 13, Foreground = Palette.Brush(Palette.DeviceIconColor(dev.Brand)),
             Text = Glyphs.ForCategory(dev.Category), VerticalAlignment = VerticalAlignment.Center,
             Margin = new Thickness(0, 0, 5, 0),
         };
@@ -115,9 +116,9 @@ public sealed class DeviceRow
 
         _status.Text = state switch
         {
-            PowerState.Charging => "\u26A1 Заряджається",
-            PowerState.Off => "Вимкнено / сон · останнє значення",
-            _ => dev.Level <= 20 ? "Низький заряд — підзаряди" : "Працює від батареї",
+            PowerState.Charging => "\u26A1 " + L.T("Заряджається", "Charging"),
+            PowerState.Off => L.T("Вимкнено / сон · останнє значення", "Off / asleep · last known value"),
+            _ => dev.Level <= 20 ? L.T("Низький заряд — підзаряди", "Low battery — charge it") : L.T("Працює від батареї", "On battery"),
         };
     }
 }

@@ -183,13 +183,13 @@ public sealed class DiscordMicService : IDisposable
             }
             catch (Exception e) when (e is not OperationCanceledException)
             {
-                lock (_gate) { _lastError = "Не вдалося отримати токен: " + e.Message; _status = "autherror"; }
+                lock (_gate) { _lastError = L.T("Не вдалося отримати токен: ", "Could not get a token: ") + e.Message; _status = "autherror"; }
                 throw;
             }
             lock (_gate) token = _token;
             if (!await TryAuth(pipe, token, ct))
             {
-                lock (_gate) { _lastError = "Discord не прийняв токен."; _status = "autherror"; }
+                lock (_gate) { _lastError = L.T("Discord не прийняв токен.", "Discord rejected the token."); _status = "autherror"; }
                 throw new InvalidOperationException("auth");
             }
         }

@@ -8,13 +8,13 @@ A Dynamic Island–style widget for Windows. A small island at the top of the sc
 
 - **Battery levels** in the island, the expanded card and as tray icons (one per device, percentage or device icon):
   - Razer wireless devices, read from Razer Synapse 4 logs.
-  - Any connected Bluetooth device that reports its battery to Windows: phones, headphones, mice, keyboards, controllers *(0.2.0)*.
-  - Experimental *(0.2.0)*: Logitech (Lightspeed / Unifying / Bolt receivers, HID++ 2.0), SteelSeries Arctis and Nova headsets (USB receiver) and Corsair (via iCUE SDK, iCUE must be running).
-  - Device icons in brand colours for popular brands *(0.2.0)*.
+  - Any connected Bluetooth device that reports its battery to Windows: phones, headphones, mice, keyboards, controllers.
+  - Experimental: Logitech (Lightspeed / Unifying / Bolt receivers, HID++ 2.0), SteelSeries Arctis and Nova headsets (USB receiver) and Corsair (via iCUE SDK, iCUE must be running).
+  - Device icons in brand colours for popular brands.
 - **Clock, date and weather** from [open-meteo.com](https://open-meteo.com) — no account or API key needed.
 - **Schedule** from Google Calendar through its secret iCal link, including recurring events.
 - **Discord microphone**: when you mute, the island shows it on top of all windows. Uses Discord's local RPC with your own Discord application.
-- **Ukrainian and English** interface *(0.2.0)*.
+- **Ukrainian and English** interface.
 - First-run setup wizard, start with Windows, desktop shortcut.
 
 ## Requirements

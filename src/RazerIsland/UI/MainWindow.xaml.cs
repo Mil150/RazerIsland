@@ -21,7 +21,6 @@ public partial class MainWindow : Window
     private const int AnimMs = 280;
     private static readonly Thickness PadFull = new(16, 12, 16, 12);
     private static readonly Thickness PadStrip = new(12, 5, 12, 5);
-    private static readonly CultureInfo Uk = CultureInfo.GetCultureInfo("uk-UA");
 
     private readonly App _app;
     private readonly QuarticEase _ease = new() { EasingMode = EasingMode.EaseOut };
@@ -121,7 +120,7 @@ public partial class MainWindow : Window
         WTop.IsChecked = S.Topmost;
         PinBtn.Foreground = Palette.Brush(S.Pinned ? Palette.Green : "#6B7078");
         PinBtn.Opacity = S.Pinned ? 1.0 : 0.7;
-        PinBtn.ToolTip = S.Pinned ? "Закріплено — натисни, щоб відкріпити" : "Закріпити на місці";
+        PinBtn.ToolTip = S.Pinned ? L.T("Закріплено — натисни, щоб відкріпити", "Locked — click to unlock") : L.T("Закріпити на місці", "Lock in place");
     }
 
     public void PositionIsland()
@@ -143,17 +142,11 @@ public partial class MainWindow : Window
 
     public void ShowDevices(DeviceSnapshot? data, IReadOnlyDictionary<string, RazerDevice> known, IReadOnlySet<string> present)
     {
-        if (data is { Devices.Count: > 0 })
-        {
-            Updated.Text = data.Time > DateTime.MinValue ? "дані Synapse о " + data.Time.ToString("HH:mm") : "";
-            Hint.Visibility = Visibility.Collapsed;
-        }
-        else
-        {
-            Hint.Text = "Немає даних від Razer Synapse. Переконайся, що Synapse запущений і пристрої увімкнені.";
-            Hint.Visibility = Visibility.Visible;
-            Updated.Text = "";
-        }
+        Updated.Text = data is { Devices.Count: > 0 } && data.Time > DateTime.MinValue
+            ? L.T("дані Synapse о ", "Synapse data at ") + data.Time.ToString("HH:mm") : "";
+        Hint.Text = L.T("Немає даних про пристрої. Переконайся, що Razer Synapse запущений або Bluetooth-пристрої підключені.",
+                        "No device data. Make sure Razer Synapse is running or Bluetooth devices are connected.");
+        Hint.Visibility = present.Count > 0 ? Visibility.Collapsed : Visibility.Visible;
 
         foreach (var (serial, d) in known)
         {
@@ -312,8 +305,8 @@ public partial class MainWindow : Window
         var t = now.ToString("HH:mm");
         StripClock.Text = t;
         HeaderClock.Text = t;
-        var d = now.ToString("dddd, d MMMM", Uk);
-        DateText.Text = char.ToUpper(d[0], Uk) + d[1..];
+        var d = now.ToString("dddd, d MMMM", L.Culture);
+        DateText.Text = char.ToUpper(d[0], L.Culture) + d[1..];
         if (now.Minute != _lastMinute)
         {
             bool first = _lastMinute == -1;
@@ -326,14 +319,16 @@ public partial class MainWindow : Window
     {
         WeatherIcon.Text = w.Icon;
         WeatherTemp.Text = $"{w.Temp}°";
-        WeatherText.Text = $"{w.Text}, відчув. {w.Feels}°";
+        WeatherText.Text = $"{w.Text}, {L.T("відчув.", "feels")} {w.Feels}°";
         WeatherCity.Text = $"{S.WeatherCity} · ↑{w.High}° ↓{w.Low}°";
+        // ручні Measure у SyncLayout інакше лишають рядок погоди з розмірами до появи тексту
+        UpdateLayout();
         SyncLayout();
     }
 
     public void ShowWeatherError()
     {
-        if (string.IsNullOrEmpty(WeatherTemp.Text)) WeatherText.Text = "Погода недоступна (немає інтернету?)";
+        if (string.IsNullOrEmpty(WeatherTemp.Text)) WeatherText.Text = L.T("Погода недоступна (немає інтернету?)", "Weather unavailable (no internet?)");
     }
 
     // ================== КАЛЕНДАР ==================
@@ -344,7 +339,8 @@ public partial class MainWindow : Window
         CalRows.Children.Clear();
         if (CalendarService.GetUrls().Count == 0)
         {
-            CalHint.Text = "Календар ще не підключено. Права кнопка на іконці в треї → «Налаштування…» → «Календар».";
+            CalHint.Text = L.T("Календар ще не підключено. Права кнопка на іконці в треї → «Налаштування…» → «Календар».",
+                               "No calendar connected yet. Right-click the tray icon → Settings… → Calendar.");
             CalHint.Visibility = Visibility.Visible;
             SyncLayout();
             return;
@@ -356,9 +352,9 @@ public partial class MainWindow : Window
             .Take(7).ToList();
         if (shown.Count == 0)
         {
-            CalHint.Text = cal.LastError && cal.LoadedCount == 0 ? "Не вдалося завантажити календар. Перевір інтернет або посилання."
-                : cal.LoadedCount == 0 ? "Завантаження…"
-                : "На найближчий тиждень подій немає.";
+            CalHint.Text = cal.LastError && cal.LoadedCount == 0 ? L.T("Не вдалося завантажити календар. Перевір інтернет або посилання.", "Could not load the calendar. Check your internet connection or the link.")
+                : cal.LoadedCount == 0 ? L.T("Завантаження…", "Loading…")
+                : L.T("На найближчий тиждень подій немає.", "No events in the coming week.");
             CalHint.Visibility = Visibility.Visible;
             SyncLayout();
             return;
@@ -372,10 +368,10 @@ public partial class MainWindow : Window
             if (day != lastDay)
             {
                 lastDay = day;
-                var label = day == now.Date ? "Сьогодні" : day == now.Date.AddDays(1) ? "Завтра" : day.ToString("dddd", Uk);
+                var label = day == now.Date ? L.T("Сьогодні", "Today") : day == now.Date.AddDays(1) ? L.T("Завтра", "Tomorrow") : day.ToString("dddd", L.Culture);
                 CalRows.Children.Add(new TextBlock
                 {
-                    Text = $"{label} · {day.ToString("d MMMM", Uk)}",
+                    Text = $"{label} · {day.ToString("d MMMM", L.Culture)}",
                     Foreground = Palette.Brush("#A9ADB5"), FontSize = 11, FontWeight = FontWeights.SemiBold,
                     Margin = new Thickness(0, 6, 0, 2),
                 });
@@ -394,8 +390,8 @@ public partial class MainWindow : Window
         g.ColumnDefinitions.Add(new ColumnDefinition());
         g.Children.Add(new Border { CornerRadius = new CornerRadius(1.5), Background = Palette.Brush(isNow ? Palette.Green : Palette.Accent) });
 
-        var time = ev.AllDay ? "Увесь день" : $"{ev.Start:HH:mm}–{ev.End:HH:mm}";
-        if (isNow) time = $"Зараз · до {ev.End:HH:mm}";
+        var time = ev.AllDay ? L.T("Увесь день", "All day") : $"{ev.Start:HH:mm}–{ev.End:HH:mm}";
+        if (isNow) time = L.T("Зараз · до ", "Now · until ") + ev.End.ToString("HH:mm");
         if (ev.Location.Length > 0) time += " · " + ev.Location;
 
         var sp = new StackPanel { Margin = new Thickness(9, 0, 0, 0) };

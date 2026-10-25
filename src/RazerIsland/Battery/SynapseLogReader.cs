@@ -118,6 +118,7 @@ public sealed partial class SynapseLogReader(string logDir)
                 Level = Clamp(int.Parse(lv.Groups[1].Value, CultureInfo.InvariantCulture)),
                 State = GetState(cs.Success ? cs.Groups[1].Value : ""),
                 ProductId = pr.Success ? pr.Groups[1].Value : "",
+                Brand = "Razer",
             });
         }
         return devices;

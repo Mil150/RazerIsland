@@ -1,6 +1,7 @@
 <Window x:Class="RazerIsland.UI.SettingsWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:l="clr-namespace:RazerIsland.UI"
         Title="Razer Island — налаштування" Width="760" Height="560" MinWidth="680" MinHeight="480"
         WindowStartupLocation="CenterScreen" Background="#141619" FontFamily="Segoe UI" FontSize="13"
         UseLayoutRounding="True">
@@ -99,13 +100,13 @@
           <TextBlock Text="Razer Island" Foreground="#F2F3F5" FontSize="15" FontWeight="SemiBold"/>
         </StackPanel>
         <TextBlock x:Name="VersionText" Foreground="#6B7078" FontSize="11" Margin="23,-14,0,18"/>
-        <Button x:Name="N1" Style="{StaticResource Nav}" Tag="1" Content="Батарея"/>
-        <Button x:Name="N2" Style="{StaticResource Nav}" Tag="2" Content="Вигляд"/>
-        <Button x:Name="N3" Style="{StaticResource Nav}" Tag="3" Content="Погода"/>
-        <Button x:Name="N4" Style="{StaticResource Nav}" Tag="4" Content="Календар"/>
-        <Button x:Name="N5" Style="{StaticResource Nav}" Tag="5" Content="Мікрофон Discord"/>
-        <Button x:Name="N6" Style="{StaticResource Nav}" Tag="6" Content="Система"/>
-        <Button x:Name="NWizard" Style="{StaticResource Nav}" Margin="0,18,0,0" Foreground="#8A8F98" Content="Пройти майстер ще раз"/>
+        <Button x:Name="N1" Style="{StaticResource Nav}" Tag="1" Content="{l:Tr 'Батарея', 'Battery'}"/>
+        <Button x:Name="N2" Style="{StaticResource Nav}" Tag="2" Content="{l:Tr 'Вигляд', 'Appearance'}"/>
+        <Button x:Name="N3" Style="{StaticResource Nav}" Tag="3" Content="{l:Tr 'Погода', 'Weather'}"/>
+        <Button x:Name="N4" Style="{StaticResource Nav}" Tag="4" Content="{l:Tr 'Календар', 'Calendar'}"/>
+        <Button x:Name="N5" Style="{StaticResource Nav}" Tag="5" Content="{l:Tr 'Мікрофон Discord', 'Discord microphone'}"/>
+        <Button x:Name="N6" Style="{StaticResource Nav}" Tag="6" Content="{l:Tr 'Система', 'System'}"/>
+        <Button x:Name="NWizard" Style="{StaticResource Nav}" Margin="0,18,0,0" Foreground="#8A8F98" Content="{l:Tr 'Пройти майстер ще раз', 'Run setup wizard again'}"/>
       </StackPanel>
     </Border>
 
@@ -128,119 +129,153 @@
 
           <!-- 0: Вітання -->
           <StackPanel x:Name="P0">
-            <TextBlock Style="{StaticResource H1}" Text="Вітаю в Razer Island"/>
-            <TextBlock>Це віджет-острівець угорі екрана, як Dynamic Island в айфоні. Він показує:</TextBlock>
+            <TextBlock Style="{StaticResource H1}" Text="{l:Tr 'Вітаю в Razer Island', 'Welcome to Razer Island'}"/>
+            <TextBlock Text="{l:Tr 'Це віджет-острівець угорі екрана, як Dynamic Island в айфоні. Він показує:', 'A widget island at the top of the screen, like the Dynamic Island on an iPhone. It shows:'}"/>
             <Border Style="{StaticResource Box}">
-              <TextBlock LineHeight="22">
-                • заряд бездротової мишки й навушників Razer (і в треї біля годинника);<LineBreak/>
-                • годинник, дату й погоду;<LineBreak/>
-                • твій розклад із Google Календаря;<LineBreak/>
-                • стан мікрофона в Discord — вимкнений мікрофон видно поверх усіх вікон.
-              </TextBlock>
+              <StackPanel>
+                <TextBlock LineHeight="22" Visibility="{l:Only uk}">
+                  • заряд бездротової мишки й навушників Razer (і в треї біля годинника);<LineBreak/>
+                  • годинник, дату й погоду;<LineBreak/>
+                  • твій розклад із Google Календаря;<LineBreak/>
+                  • стан мікрофона в Discord — вимкнений мікрофон видно поверх усіх вікон.
+                </TextBlock>
+                <TextBlock LineHeight="22" Visibility="{l:Only en}">
+                  • battery of your wireless Razer mouse and headset (also in the tray next to the clock);<LineBreak/>
+                  • the time, date and weather;<LineBreak/>
+                  • your schedule from Google Calendar;<LineBreak/>
+                  • your Discord microphone state — a muted mic is shown on top of all windows.
+                </TextBlock>
+              </StackPanel>
             </Border>
-            <TextBlock Margin="0,14,0,0">Налаштування займе 2–3 хвилини. Будь-який крок можна пропустити й повернутися до нього пізніше: права кнопка на іконці в треї → «Налаштування».</TextBlock>
+            <TextBlock Margin="0,14,0,0" Text="{l:Tr 'Налаштування займе 2–3 хвилини. Будь-який крок можна пропустити й повернутися до нього пізніше: права кнопка на іконці в треї → «Налаштування».', 'Setup takes 2–3 minutes. You can skip any step and come back later: right-click the tray icon → Settings.'}"/>
           </StackPanel>
 
           <!-- 1: Батарея -->
           <StackPanel x:Name="P1">
-            <TextBlock Style="{StaticResource H1}" Text="Батарея Razer"/>
-            <TextBlock>Заряд береться з програми Razer Synapse 4 — вона має бути встановлена й запущена (зазвичай вона сама стартує з Windows).</TextBlock>
-            <TextBlock Style="{StaticResource H2}" Text="ЗНАЙДЕНІ ПРИСТРОЇ"/>
+            <TextBlock Style="{StaticResource H1}" Text="{l:Tr 'Батарея Razer', 'Razer battery'}"/>
+            <TextBlock Text="{l:Tr 'Заряд береться з програми Razer Synapse 4 — вона має бути встановлена й запущена (зазвичай вона сама стартує з Windows).', 'Battery levels come from Razer Synapse 4 — it must be installed and running (it usually starts with Windows).'}"/>
+            <TextBlock Style="{StaticResource H2}" Text="{l:Tr 'ЗНАЙДЕНІ ПРИСТРОЇ', 'DEVICES FOUND'}"/>
             <Border Style="{StaticResource Box}">
               <TextBlock x:Name="BatStatus" LineHeight="22"/>
             </Border>
+            <TextBlock Margin="0,8,0,0" Foreground="#8A8F98" FontSize="12" Text="{l:Tr 'Також показуються Bluetooth-пристрої та бездротові Logitech, SteelSeries (гарнітури Arctis) і Corsair (потрібен запущений iCUE). Підтримка Logitech, SteelSeries і Corsair — експериментальна.', 'Bluetooth devices and wireless Logitech, SteelSeries (Arctis headsets) and Corsair (iCUE must be running) are shown too. Logitech, SteelSeries and Corsair support is experimental.'}"/>
             <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
-              <Button x:Name="BtnBatRefresh" Content="Перевірити знову"/>
+              <Button x:Name="BtnBatRefresh" Content="{l:Tr 'Перевірити знову', 'Check again'}"/>
             </StackPanel>
-            <TextBlock Margin="0,14,0,0" Foreground="#8A8F98" FontSize="12">
+            <TextBlock Margin="0,14,0,0" Foreground="#8A8F98" FontSize="12" Visibility="{l:Only uk}">
               Немає Synapse? Завантаж його з сайту Razer:
               <Hyperlink NavigateUri="https://www.razer.com/synapse-4">razer.com/synapse-4</Hyperlink>.
               Заряд мишки оновлюється приблизно раз на 1–2 хвилини, навушників — рідше: так часто його записує сам Synapse.
+            </TextBlock>
+            <TextBlock Margin="0,14,0,0" Foreground="#8A8F98" FontSize="12" Visibility="{l:Only en}">
+              No Synapse? Download it from Razer:
+              <Hyperlink NavigateUri="https://www.razer.com/synapse-4">razer.com/synapse-4</Hyperlink>.
+              The mouse level updates about every 1–2 minutes and the headset less often — that is how often Synapse itself records it.
             </TextBlock>
           </StackPanel>
 
           <!-- 2: Вигляд -->
           <StackPanel x:Name="P2">
-            <TextBlock Style="{StaticResource H1}" Text="Вигляд"/>
-            <TextBlock Style="{StaticResource H2}" Text="ФОРМА" Margin="0,0,0,4"/>
-            <RadioButton x:Name="RbIsland" GroupName="mode" Content="Острівець зверху по центру — розкривається, коли наводиш мишку"/>
-            <RadioButton x:Name="RbCard" GroupName="mode" Content="Плаваюча картка — завжди розкрита, можна перетягувати"/>
-            <TextBlock Style="{StaticResource H2}" Text="ПОВЕДІНКА"/>
-            <CheckBox x:Name="CbTop" Content="Завжди поверх усіх вікон"/>
-            <CheckBox x:Name="CbPin" Content="Закріпити картку на місці (щоб випадково не перетягнути)"/>
-            <TextBlock Style="{StaticResource H2}" Text="НЕПРОЗОРІСТЬ ФОНУ"/>
+            <TextBlock Style="{StaticResource H1}" Text="{l:Tr 'Вигляд', 'Appearance'}"/>
+            <TextBlock Style="{StaticResource H2}" Text="МОВА · LANGUAGE" Margin="0,0,0,4"/>
+            <RadioButton x:Name="RbLangUk" GroupName="lang" Content="Українська"/>
+            <RadioButton x:Name="RbLangEn" GroupName="lang" Content="English"/>
+            <TextBlock Style="{StaticResource H2}" Text="{l:Tr 'ФОРМА', 'SHAPE'}"/>
+            <RadioButton x:Name="RbIsland" GroupName="mode" Content="{l:Tr 'Острівець зверху по центру — розкривається, коли наводиш мишку', 'Island at the top centre — expands when you hover over it'}"/>
+            <RadioButton x:Name="RbCard" GroupName="mode" Content="{l:Tr 'Плаваюча картка — завжди розкрита, можна перетягувати', 'Floating card — always expanded, can be dragged'}"/>
+            <TextBlock Style="{StaticResource H2}" Text="{l:Tr 'ПОВЕДІНКА', 'BEHAVIOUR'}"/>
+            <CheckBox x:Name="CbTop" Content="{l:Tr 'Завжди поверх усіх вікон', 'Always on top'}"/>
+            <CheckBox x:Name="CbPin" Content="{l:Tr 'Закріпити картку на місці (щоб випадково не перетягнути)', 'Lock the card in place (so it is not dragged by accident)'}"/>
+            <TextBlock Style="{StaticResource H2}" Text="{l:Tr 'НЕПРОЗОРІСТЬ ФОНУ', 'BACKGROUND OPACITY'}"/>
             <Grid>
               <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="56"/></Grid.ColumnDefinitions>
               <Slider x:Name="SlOpacity" Minimum="40" Maximum="100" TickFrequency="5" IsSnapToTickEnabled="True" VerticalAlignment="Center"/>
               <TextBlock x:Name="LblOpacity" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center" Foreground="#F2F3F5"/>
             </Grid>
-            <TextBlock Style="{StaticResource H2}" Text="ІКОНКИ В ТРЕЇ"/>
-            <RadioButton x:Name="RbTrayIcon" GroupName="tray" Content="Значок пристрою + батарейка"/>
-            <RadioButton x:Name="RbTrayNum" GroupName="tray" Content="Відсоток заряду цифрами + батарейка"/>
-            <TextBlock Margin="0,8,0,0" Foreground="#8A8F98" FontSize="12">Якщо іконок не видно біля годинника — Windows сховала їх під стрілочку ^. Перетягни їх на панель або увімкни в Параметри → Персоналізація → Панель завдань → Інші значки.</TextBlock>
+            <TextBlock Style="{StaticResource H2}" Text="{l:Tr 'ІКОНКИ В ТРЕЇ', 'TRAY ICONS'}"/>
+            <RadioButton x:Name="RbTrayIcon" GroupName="tray" Content="{l:Tr 'Значок пристрою + смужка заряду', 'Device icon + charge bar'}"/>
+            <RadioButton x:Name="RbTrayNum" GroupName="tray" Content="{l:Tr 'Відсоток заряду цифрами + смужка заряду', 'Battery percentage + charge bar'}"/>
+            <TextBlock Margin="0,8,0,0" Foreground="#8A8F98" FontSize="12" Text="{l:Tr 'Якщо іконок не видно біля годинника — Windows сховала їх під стрілочку ^. Перетягни їх на панель або увімкни в Параметри → Персоналізація → Панель завдань → Інші значки.', 'If the icons are not next to the clock, Windows has hidden them under the ^ arrow. Drag them onto the taskbar or turn them on in Settings → Personalisation → Taskbar → Other system tray icons.'}"/>
           </StackPanel>
 
           <!-- 3: Погода -->
           <StackPanel x:Name="P3">
-            <TextBlock Style="{StaticResource H1}" Text="Погода"/>
-            <TextBlock>Введи своє місто — погода оновлюється кожні 15 хвилин (дані open-meteo.com, без реєстрації).</TextBlock>
+            <TextBlock Style="{StaticResource H1}" Text="{l:Tr 'Погода', 'Weather'}"/>
+            <TextBlock Text="{l:Tr 'Введи своє місто — погода оновлюється кожні 15 хвилин (дані open-meteo.com, без реєстрації).', 'Enter your city — the weather updates every 15 minutes (data from open-meteo.com, no sign-up).'}"/>
             <Grid Margin="0,14,0,0">
               <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
               <TextBox x:Name="TbCity"/>
-              <Button x:Name="BtnCity" Grid.Column="1" Margin="8,0,0,0" Content="Знайти"/>
+              <Button x:Name="BtnCity" Grid.Column="1" Margin="8,0,0,0" Content="{l:Tr 'Знайти', 'Search'}"/>
             </Grid>
             <TextBlock x:Name="CityStatus" Margin="0,10,0,0" Foreground="#8A8F98"/>
           </StackPanel>
 
           <!-- 4: Календар -->
           <StackPanel x:Name="P4">
-            <TextBlock Style="{StaticResource H1}" Text="Google Календар"/>
-            <TextBlock>Щоб бачити розклад, віджету потрібне секретне посилання на календар (без входу в акаунт):</TextBlock>
+            <TextBlock Style="{StaticResource H1}" Text="{l:Tr 'Google Календар', 'Google Calendar'}"/>
+            <TextBlock Text="{l:Tr 'Щоб бачити розклад, віджету потрібне секретне посилання на календар (без входу в акаунт):', 'To show your schedule, the widget needs your calendar’s secret link (no sign-in):'}"/>
             <Border Style="{StaticResource Box}">
-              <TextBlock LineHeight="22">
-                1. Відкрий <Hyperlink NavigateUri="https://calendar.google.com/calendar/r/settings">налаштування Google Календаря</Hyperlink>.<LineBreak/>
-                2. Зліва в розділі «Налаштування моїх календарів» вибери свій календар.<LineBreak/>
-                3. Прокрути до «Інтеграція календаря» і скопіюй «Секретна адреса у форматі iCal».<LineBreak/>
-                4. Встав її нижче. Можна кілька календарів — по одному посиланню в рядку.
-              </TextBlock>
+              <StackPanel>
+                <TextBlock LineHeight="22" Visibility="{l:Only uk}">
+                  1. Відкрий <Hyperlink NavigateUri="https://calendar.google.com/calendar/r/settings">налаштування Google Календаря</Hyperlink>.<LineBreak/>
+                  2. Зліва в розділі «Налаштування моїх календарів» вибери свій календар.<LineBreak/>
+                  3. Прокрути до «Інтеграція календаря» і скопіюй «Секретна адреса у форматі iCal».<LineBreak/>
+                  4. Встав її нижче. Можна кілька календарів — по одному посиланню в рядку.
+                </TextBlock>
+                <TextBlock LineHeight="22" Visibility="{l:Only en}">
+                  1. Open <Hyperlink NavigateUri="https://calendar.google.com/calendar/r/settings">Google Calendar settings</Hyperlink>.<LineBreak/>
+                  2. On the left, under “Settings for my calendars”, choose your calendar.<LineBreak/>
+                  3. Scroll to “Integrate calendar” and copy “Secret address in iCal format”.<LineBreak/>
+                  4. Paste it below. You can add several calendars — one link per line.
+                </TextBlock>
+              </StackPanel>
             </Border>
             <TextBox x:Name="TbCal" Margin="0,12,0,0" AcceptsReturn="True" Height="74" TextWrapping="NoWrap" VerticalScrollBarVisibility="Auto" FontFamily="Consolas" FontSize="12"/>
             <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
-              <Button x:Name="BtnCalTest" Content="Зберегти й перевірити"/>
+              <Button x:Name="BtnCalTest" Content="{l:Tr 'Зберегти й перевірити', 'Save and test'}"/>
             </StackPanel>
             <TextBlock x:Name="CalStatus" Margin="0,10,0,0" Foreground="#8A8F98"/>
-            <TextBlock Margin="0,10,0,0" Foreground="#FFB347" FontSize="12">Нікому не показуй це посилання — за ним видно весь календар. Воно зберігається тільки на цьому комп'ютері.</TextBlock>
+            <TextBlock Margin="0,10,0,0" Foreground="#FFB347" FontSize="12" Text="{l:Tr 'Нікому не показуй це посилання — за ним видно весь календар. Воно зберігається тільки на цьому комп’ютері.', 'Do not share this link — anyone with it can see your whole calendar. It is stored only on this computer.'}"/>
           </StackPanel>
 
           <!-- 5: Discord -->
           <StackPanel x:Name="P5">
-            <TextBlock Style="{StaticResource H1}" Text="Мікрофон у Discord"/>
-            <TextBlock>Коли вимикаєш мікрофон у Discord, острівець показує це поверх усіх вікон. Discord дозволяє це лише через твій власний «застосунок» — його створення займає 2 хвилини:</TextBlock>
+            <TextBlock Style="{StaticResource H1}" Text="{l:Tr 'Мікрофон у Discord', 'Discord microphone'}"/>
+            <TextBlock Text="{l:Tr 'Коли вимикаєш мікрофон у Discord, острівець показує це поверх усіх вікон. Discord дозволяє це лише через твій власний «застосунок» — його створення займає 2 хвилини:', 'When you mute your mic in Discord, the island shows it on top of all windows. Discord only allows this through your own “application” — creating one takes 2 minutes:'}"/>
             <Border Style="{StaticResource Box}">
-              <TextBlock LineHeight="22">
-                1. Відкрий <Hyperlink NavigateUri="https://discord.com/developers/applications">Discord Developer Portal</Hyperlink> → «New Application» → будь-яка назва → «Create».<LineBreak/>
-                2. Зліва відкрий «OAuth2» і скопіюй «Client ID».<LineBreak/>
-                3. Там само натисни «Reset Secret» і скопіюй «Client Secret».<LineBreak/>
-                4. У «Redirects» натисни «Add Redirect», впиши <Run Foreground="#F2F3F5" FontFamily="Consolas">http://localhost</Run> і натисни «Save Changes».<LineBreak/>
-                5. Встав Client ID і Client Secret нижче й натисни «Підключити». У Discord з'явиться вікно — натисни «Авторизувати».
-              </TextBlock>
+              <StackPanel>
+                <TextBlock LineHeight="22" Visibility="{l:Only uk}">
+                  1. Відкрий <Hyperlink NavigateUri="https://discord.com/developers/applications">Discord Developer Portal</Hyperlink> → «New Application» → будь-яка назва → «Create».<LineBreak/>
+                  2. Зліва відкрий «OAuth2» і скопіюй «Client ID».<LineBreak/>
+                  3. Там само натисни «Reset Secret» і скопіюй «Client Secret».<LineBreak/>
+                  4. У «Redirects» натисни «Add Redirect», впиши <Run Foreground="#F2F3F5" FontFamily="Consolas">http://localhost</Run> і натисни «Save Changes».<LineBreak/>
+                  5. Встав Client ID і Client Secret нижче й натисни «Підключити». У Discord з'явиться вікно — натисни «Авторизувати».
+                </TextBlock>
+                <TextBlock LineHeight="22" Visibility="{l:Only en}">
+                  1. Open the <Hyperlink NavigateUri="https://discord.com/developers/applications">Discord Developer Portal</Hyperlink> → “New Application” → any name → “Create”.<LineBreak/>
+                  2. On the left, open “OAuth2” and copy the “Client ID”.<LineBreak/>
+                  3. On the same page, click “Reset Secret” and copy the “Client Secret”.<LineBreak/>
+                  4. Under “Redirects”, click “Add Redirect”, enter <Run Foreground="#F2F3F5" FontFamily="Consolas">http://localhost</Run> and click “Save Changes”.<LineBreak/>
+                  5. Paste the Client ID and Client Secret below and click “Connect”. A window appears in Discord — click “Authorize”.
+                </TextBlock>
+              </StackPanel>
             </Border>
             <TextBlock Style="{StaticResource H2}" Text="CLIENT ID"/>
             <TextBox x:Name="TbDiscordId" FontFamily="Consolas"/>
             <TextBlock Style="{StaticResource H2}" Text="CLIENT SECRET"/>
             <PasswordBox x:Name="PbDiscordSecret"/>
             <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
-              <Button x:Name="BtnDiscord" Style="{StaticResource Primary}" Content="Підключити"/>
-              <Button x:Name="BtnDiscordOff" Margin="8,0,0,0" Content="Відключити"/>
+              <Button x:Name="BtnDiscord" Style="{StaticResource Primary}" Content="{l:Tr 'Підключити', 'Connect'}"/>
+              <Button x:Name="BtnDiscordOff" Margin="8,0,0,0" Content="{l:Tr 'Відключити', 'Disconnect'}"/>
             </StackPanel>
             <TextBlock x:Name="DiscordStatus" Margin="0,10,0,0" Foreground="#8A8F98"/>
           </StackPanel>
 
           <!-- 6: Система -->
           <StackPanel x:Name="P6">
-            <TextBlock Style="{StaticResource H1}" Text="Система"/>
-            <CheckBox x:Name="CbAuto" Content="Запускати разом з Windows"/>
-            <CheckBox x:Name="CbDesktop" Content="Ярлик «Razer Island» на робочому столі"/>
+            <TextBlock Style="{StaticResource H1}" Text="{l:Tr 'Система', 'System'}"/>
+            <CheckBox x:Name="CbAuto" Content="{l:Tr 'Запускати разом з Windows', 'Start with Windows'}"/>
+            <CheckBox x:Name="CbDesktop" Content="{l:Tr 'Ярлик «Razer Island» на робочому столі', 'Razer Island shortcut on the desktop'}"/>
             <Border Style="{StaticResource Box}" Margin="0,14,0,0">
               <TextBlock x:Name="SysInfo" LineHeight="22" Foreground="#A9ADB5" FontSize="12"/>
             </Border>
@@ -248,24 +283,31 @@
 
           <!-- 7: Готово -->
           <StackPanel x:Name="P7">
-            <TextBlock Style="{StaticResource H1}" Text="Готово!"/>
+            <TextBlock Style="{StaticResource H1}" Text="{l:Tr 'Готово!', 'All set!'}"/>
             <Border Style="{StaticResource Box}">
-              <TextBlock LineHeight="22">
-                • Наведи мишку на острівець угорі екрана — він розкриється.<LineBreak/>
-                • Права кнопка на острівці або на іконці в треї → «Налаштування», щоб щось змінити.<LineBreak/>
-                • Razer Island тепер є в меню «Пуск» — його можна закріпити на початковому екрані.
-              </TextBlock>
+              <StackPanel>
+                <TextBlock LineHeight="22" Visibility="{l:Only uk}">
+                  • Наведи мишку на острівець угорі екрана — він розкриється.<LineBreak/>
+                  • Права кнопка на острівці або на іконці в треї → «Налаштування», щоб щось змінити.<LineBreak/>
+                  • Razer Island тепер є в меню «Пуск» — його можна закріпити на початковому екрані.
+                </TextBlock>
+                <TextBlock LineHeight="22" Visibility="{l:Only en}">
+                  • Hover over the island at the top of the screen to expand it.<LineBreak/>
+                  • Right-click the island or the tray icon → Settings to change anything.<LineBreak/>
+                  • Razer Island is now in the Start menu — you can pin it to Start.
+                </TextBlock>
+              </StackPanel>
             </Border>
           </StackPanel>
         </Grid>
       </ScrollViewer>
 
       <Grid Grid.Row="2" Margin="0,16,0,0">
-        <Button x:Name="BtnSkip" HorizontalAlignment="Left" Background="Transparent" Foreground="#8A8F98" Content="Пропустити налаштування"/>
+        <Button x:Name="BtnSkip" HorizontalAlignment="Left" Background="Transparent" Foreground="#8A8F98" Content="{l:Tr 'Пропустити налаштування', 'Skip setup'}"/>
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-          <Button x:Name="BtnBack" Content="Назад"/>
-          <Button x:Name="BtnNext" Style="{StaticResource Primary}" Margin="8,0,0,0" Content="Далі"/>
-          <Button x:Name="BtnClose" Style="{StaticResource Primary}" Margin="8,0,0,0" Content="Закрити"/>
+          <Button x:Name="BtnBack" Content="{l:Tr 'Назад', 'Back'}"/>
+          <Button x:Name="BtnNext" Style="{StaticResource Primary}" Margin="8,0,0,0" Content="{l:Tr 'Далі', 'Next'}"/>
+          <Button x:Name="BtnClose" Style="{StaticResource Primary}" Margin="8,0,0,0" Content="{l:Tr 'Закрити', 'Close'}"/>
         </StackPanel>
       </Grid>
     </Grid>

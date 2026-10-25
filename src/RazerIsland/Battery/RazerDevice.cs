@@ -12,6 +12,8 @@ public sealed record RazerDevice
     public int Level { get; init; }
     public PowerState State { get; init; }
     public string ProductId { get; init; } = "";
+    /// <summary>Razer, Logitech, Samsung… або порожньо, якщо бренд невідомий.</summary>
+    public string Brand { get; init; } = "";
     public DateTime Time { get; init; } = DateTime.MinValue;
 }
 

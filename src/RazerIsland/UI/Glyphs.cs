@@ -20,6 +20,7 @@ public static class Glyphs
         if (Regex.IsMatch(category, "AUDIO|HEADSET")) return "\uE7F6";
         if (category.Contains("KEYBOARD")) return "\uE765";
         if (Regex.IsMatch(category, "CONTROLLER|GAMEPAD")) return "\uE7FC";
+        if (category.Contains("PHONE")) return "\uE8EA";
         return "\uE83F";
     }
 

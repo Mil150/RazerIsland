@@ -29,6 +29,10 @@ public partial class App : Application
     private readonly DispatcherTimer _micTimer = new() { Interval = TimeSpan.FromMilliseconds(150) };
     private readonly DispatcherTimer _noticeTimer = new() { Interval = TimeSpan.FromMilliseconds(2600) };
     private int _netTick;
+    private int _refreshTick;
+    private List<RazerDevice> _wireless = [];
+    private bool _wirelessBusy;
+    private readonly HashSet<string> _loggedSources = [];
 
     // мікрофон
     private bool _micMuted, _micKnown, _rawMute, _rawDeaf, _reportedError;
@@ -67,6 +71,7 @@ public partial class App : Application
 
         LegacyImport.Run();
         Settings = Settings.Load();
+        L.Init(Settings.Language!);
         _reader = new SynapseLogReader(AppInfo.SynapseLogDir);
         System.Windows.Forms.Application.EnableVisualStyles();
 
@@ -140,14 +145,44 @@ public partial class App : Application
         try { data = _reader.Read(); }
         catch (Exception e) { Log.Write("Читання Synapse: " + e.Message); }
 
+        if (_refreshTick++ % 10 == 0) _ = RefreshWirelessAsync();
+
         var present = new HashSet<string>();
-        if (data is not null)
-            foreach (var d in data.Devices) { _known[d.Serial] = d; present.Add(d.Serial); }
+        foreach (var d in (data?.Devices ?? []).Concat(_wireless)) { _known[d.Serial] = d; present.Add(d.Serial); }
 
         foreach (var d in _known.Values)
             _tray.Update(d, present.Contains(d.Serial) ? d.State : PowerState.Off, Settings.TrayStyle);
         Widget.ShowDevices(data, _known, present);
         DevicesChanged?.Invoke();
+    }
+
+    // Bluetooth, Logitech, SteelSeries, Corsair: заряд змінюється повільно, тож досить кожні 30 с і у фоні
+    private async Task RefreshWirelessAsync()
+    {
+        if (_wirelessBusy) return;
+        _wirelessBusy = true;
+        try
+        {
+            var all = new List<RazerDevice>();
+            all.AddRange(await Safe("Bluetooth", BluetoothReader.ReadAsync));
+            all.AddRange(await Safe("Logitech", () => Task.Run(LogitechReader.Read)));
+            all.AddRange(await Safe("SteelSeries", () => Task.Run(SteelSeriesReader.Read)));
+            all.AddRange(await Safe("Corsair", () => Task.Run(CorsairReader.Read)));
+            _wireless = all;
+        }
+        finally { _wirelessBusy = false; }
+        if (!Exiting) RefreshAll();
+    }
+
+    // одне джерело не має ламати інші; помилку кожного пишемо в журнал лише раз
+    private async Task<List<RazerDevice>> Safe(string source, Func<Task<List<RazerDevice>>> read)
+    {
+        try { return await read(); }
+        catch (Exception e)
+        {
+            if (_loggedSources.Add(source)) Log.Write($"{source}: {e.Message}");
+            return [];
+        }
     }
 
     /// <summary>Скинути кеш логів і перечитати (кнопка «Перевірити знову»).</summary>
@@ -249,7 +284,16 @@ public partial class App : Application
         _settingsWin.Open(page, wizard);
     }
 
-    public void ExitApp(bool restart = false)
+    /// <summary>Мова застосовується перезапуском (тексти задаються під час створення вікон).</summary>
+    public void SetLanguage(string lang)
+    {
+        if (lang == L.Code) return;
+        Settings.Language = lang;
+        Settings.Save();
+        ExitApp(restart: true, args: "-OpenSettings");
+    }
+
+    public void ExitApp(bool restart = false, string args = "")
     {
         Exiting = true;
         foreach (var t in new[] { _timer, _netTimer, _micTimer, _clockTimer, _noticeTimer }) t.Stop();
@@ -259,7 +303,7 @@ public partial class App : Application
         {
             _instance?.Dispose();
             _instance = null;
-            try { Process.Start(new ProcessStartInfo(AppInfo.ExePath) { UseShellExecute = false }); }
+            try { Process.Start(new ProcessStartInfo(AppInfo.ExePath, args) { UseShellExecute = false }); }
             catch (Exception e) { Log.Write("Перезапуск: " + e.Message); }
         }
         Shutdown();
@@ -309,7 +353,7 @@ public partial class App : Application
     private void ShowMicNotice(bool mute, bool deaf)
     {
         bool off = mute || deaf;
-        var text = deaf ? "Звук вимкнено" : mute ? "Мікрофон вимкнено" : "Мікрофон увімкнено";
+        var text = deaf ? L.T("Звук вимкнено", "Sound off") : mute ? L.T("Мікрофон вимкнено", "Microphone muted") : L.T("Мікрофон увімкнено", "Microphone on");
         var color = off ? Palette.Red : Palette.Green;
         Widget.NoticeActive = true;
         Widget.SetNotice(text, color, off);
@@ -356,7 +400,7 @@ public partial class App : Application
         if (s.Status is "denied" or "autherror" && !_reportedError)
         {
             _reportedError = true;
-            MessageBox.Show("Не вдалося підключитися до Discord.\n" + s.LastError, "Discord — мікрофон");
+            MessageBox.Show(L.T("Не вдалося підключитися до Discord.\n", "Could not connect to Discord.\n") + s.LastError, L.T("Discord — мікрофон", "Discord microphone"));
         }
     }
 }

@@ -30,7 +30,7 @@ public static class WeatherService
     /// <summary>Перше знайдене місто або null.</summary>
     public static async Task<GeoPlace?> FindCityAsync(string name)
     {
-        var url = "https://geocoding-api.open-meteo.com/v1/search?count=1&language=uk&name=" + Uri.EscapeDataString(name);
+        var url = "https://geocoding-api.open-meteo.com/v1/search?count=1&language=" + L.Code + "&name=" + Uri.EscapeDataString(name);
         using var doc = JsonDocument.Parse(await Http.Client.GetStringAsync(url));
         if (!doc.RootElement.TryGetProperty("results", out var results) || results.GetArrayLength() == 0) return null;
         var r = results[0];
@@ -47,15 +47,15 @@ public static class WeatherService
     public static (string Icon, string Text) Describe(int code)
     {
         const string sun = "\u2600", part = "\u26C5", cloud = "\u2601", rain = "\u2602", snow = "\u2744", storm = "\u26A1";
-        if (code == 0) return (sun, "Ясно");
-        if (code <= 2) return (part, "Мінлива хмарність");
-        if (code == 3) return (cloud, "Хмарно");
-        if (code <= 48) return (cloud, "Туман");
-        if (code <= 57) return (rain, "Мряка");
-        if (code <= 67) return (rain, "Дощ");
-        if (code <= 77) return (snow, "Сніг");
-        if (code <= 82) return (rain, "Злива");
-        if (code <= 86) return (snow, "Снігопад");
-        return (storm, "Гроза");
+        if (code == 0) return (sun, L.T("Ясно", "Clear"));
+        if (code <= 2) return (part, L.T("Мінлива хмарність", "Partly cloudy"));
+        if (code == 3) return (cloud, L.T("Хмарно", "Cloudy"));
+        if (code <= 48) return (cloud, L.T("Туман", "Fog"));
+        if (code <= 57) return (rain, L.T("Мряка", "Drizzle"));
+        if (code <= 67) return (rain, L.T("Дощ", "Rain"));
+        if (code <= 77) return (snow, L.T("Сніг", "Snow"));
+        if (code <= 82) return (rain, L.T("Злива", "Showers"));
+        if (code <= 86) return (snow, L.T("Снігопад", "Snow showers"));
+        return (storm, L.T("Гроза", "Thunderstorm"));
     }
 }

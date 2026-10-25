@@ -32,6 +32,8 @@ public sealed class Settings
     public bool FirstRunDone { get; set; }
     public bool DesktopShortcut { get; set; }
     public bool? V2 { get; set; }
+    /// <summary>"uk" або "en".</summary>
+    public string? Language { get; set; }
 
     [JsonIgnore] public bool IsIsland => Mode != "full";
 
@@ -58,6 +60,8 @@ public sealed class Settings
         s.DiscordClientId ??= ""; s.DiscordClientSecret ??= ""; s.DiscordToken ??= ""; s.DiscordRefresh ??= "";
         // v2: за замовчуванням не поверх вікон
         if (s.V2 is null) { s.Topmost = false; s.V2 = true; }
+        // хто вже користувався віджетом — лишається з українською; новий — мова Windows
+        if (s.Language is not ("uk" or "en")) s.Language = s.FirstRunDone ? "uk" : L.SystemDefault();
         return s;
     }
 

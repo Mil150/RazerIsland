@@ -45,6 +45,12 @@ CloseApplications=no
 Name: "uk"; MessagesFile: "compiler:Languages\Ukrainian.isl"
 Name: "en"; MessagesFile: "compiler:Default.isl"
 
+[CustomMessages]
+uk.AppDescription=Заряд Razer, годинник, погода, розклад і мікрофон Discord
+uk.SettingsShortcut=налаштування
+en.AppDescription=Razer battery, clock, weather, schedule and Discord microphone
+en.SettingsShortcut=Settings
+
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
@@ -54,8 +60,8 @@ Source: "..\CHANGELOG.md"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
 ; ті самі імена, що й у PowerShell-версії, — старі ярлики замінюються
-Name: "{autoprograms}\{#AppName}"; Filename: "{app}\{#AppExe}"; Comment: "Заряд Razer, годинник, погода, розклад і мікрофон Discord"
-Name: "{autoprograms}\{#AppName} — налаштування"; Filename: "{app}\{#AppExe}"; Parameters: "-OpenSettings"; Comment: "Налаштування {#AppName}"
+Name: "{autoprograms}\{#AppName}"; Filename: "{app}\{#AppExe}"; Comment: "{cm:AppDescription}"
+Name: "{autoprograms}\{#AppName} — {cm:SettingsShortcut}"; Filename: "{app}\{#AppExe}"; Parameters: "-OpenSettings"; Comment: "{cm:SettingsShortcut}"
 Name: "{autodesktop}\{#AppName}"; Filename: "{app}\{#AppExe}"; Tasks: desktopicon
 
 [Run]

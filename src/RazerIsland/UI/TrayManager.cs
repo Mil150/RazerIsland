@@ -21,13 +21,13 @@ public sealed class TrayManager : IDisposable
     public TrayManager(Action openSettings, Action toggleWidget, Action exit)
     {
         _toggleWidget = toggleWidget;
-        var settings = new Forms.ToolStripMenuItem("Налаштування…");
+        var settings = new Forms.ToolStripMenuItem(L.T("Налаштування…", "Settings…"));
         settings.Font = new System.Drawing.Font(settings.Font, System.Drawing.FontStyle.Bold);
         settings.Click += (_, _) => openSettings();
         _menu.Items.Add(settings);
-        _menu.Items.Add("Показати / сховати віджет", null, (_, _) => toggleWidget());
+        _menu.Items.Add(L.T("Показати / сховати віджет", "Show / hide widget"), null, (_, _) => toggleWidget());
         _menu.Items.Add(new Forms.ToolStripSeparator());
-        _menu.Items.Add("Вийти", null, (_, _) => exit());
+        _menu.Items.Add(L.T("Вийти", "Exit"), null, (_, _) => exit());
     }
 
     /// <summary>Скинути кеш іконок (зміна стилю або теми).</summary>
@@ -53,7 +53,7 @@ public sealed class TrayManager : IDisposable
         }
         if (!it.Icon.Visible) it.Icon.Visible = true;
 
-        var suffix = state switch { PowerState.Charging => " (заряджається)", PowerState.Off => " (вимкнено)", _ => "" };
+        var suffix = state switch { PowerState.Charging => L.T(" (заряджається)", " (charging)"), PowerState.Off => L.T(" (вимкнено)", " (off)"), _ => "" };
         var tip = $"{d.Name}: {d.Level}%{suffix}";
         it.Icon.Text = tip.Length > 63 ? tip[..63] : tip;
     }

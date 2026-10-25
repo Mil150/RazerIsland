@@ -2,7 +2,8 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net10.0-windows</TargetFramework>
+    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+    <SupportedOSPlatformVersion>10.0.17763.0</SupportedOSPlatformVersion>
     <UseWPF>true</UseWPF>
     <UseWindowsForms>true</UseWindowsForms>
     <Nullable>enable</Nullable>
@@ -12,7 +13,7 @@
     <AssemblyName>RazerIsland</AssemblyName>
     <ApplicationIcon>Assets\app.ico</ApplicationIcon>
 
-    <Version>0.1.1</Version>
+    <Version>0.2.0</Version>
     <Product>Razer Island</Product>
     <Description>Заряд Razer, годинник, погода, розклад і мікрофон Discord</Description>
     <Copyright>© 2026 Mil150</Copyright>
@@ -28,6 +29,8 @@
 
   <ItemGroup>
     <Resource Include="Assets\app.ico" />
+    <!-- Corsair iCUE SDK v4.0.84 (redist з github.com/CorsairOfficial/cue-sdk) -->
+    <None Include="Native\iCUESDK.x64_2019.dll" Link="iCUESDK.x64_2019.dll" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>

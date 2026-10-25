@@ -1,21 +1,22 @@
 <Window x:Class="RazerIsland.UI.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:l="clr-namespace:RazerIsland.UI"
         Title="Razer Battery" WindowStyle="None" AllowsTransparency="True" Background="Transparent"
         ResizeMode="NoResize" ShowInTaskbar="False" Topmost="False" Width="828" Height="200"
         UseLayoutRounding="True" FontFamily="Segoe UI" WindowStartupLocation="Manual">
   <Window.ContextMenu>
     <ContextMenu x:Name="Ctx">
-      <MenuItem x:Name="WSettings" Header="Налаштування…" FontWeight="SemiBold"/>
+      <MenuItem x:Name="WSettings" Header="{l:Tr 'Налаштування…', 'Settings…'}" FontWeight="SemiBold"/>
       <Separator/>
-      <MenuItem x:Name="WModeStrip" Header="Вигляд: острівець зверху (розкривається при наведенні)" IsCheckable="True"/>
-      <MenuItem x:Name="WModeFull" Header="Вигляд: плаваюча картка (завжди розкрита)" IsCheckable="True"/>
+      <MenuItem x:Name="WModeStrip" Header="{l:Tr 'Вигляд: острівець зверху (розкривається при наведенні)', 'View: island at the top (expands on hover)'}" IsCheckable="True"/>
+      <MenuItem x:Name="WModeFull" Header="{l:Tr 'Вигляд: плаваюча картка (завжди розкрита)', 'View: floating card (always expanded)'}" IsCheckable="True"/>
       <Separator/>
-      <MenuItem x:Name="WPin" Header="Закріпити на місці" IsCheckable="True"/>
-      <MenuItem x:Name="WTop" Header="Поверх усіх вікон" IsCheckable="True"/>
-      <MenuItem x:Name="WHide" Header="Сховати (іконка в треї лишиться)"/>
+      <MenuItem x:Name="WPin" Header="{l:Tr 'Закріпити на місці', 'Lock in place'}" IsCheckable="True"/>
+      <MenuItem x:Name="WTop" Header="{l:Tr 'Поверх усіх вікон', 'Always on top'}" IsCheckable="True"/>
+      <MenuItem x:Name="WHide" Header="{l:Tr 'Сховати (іконка в треї лишиться)', 'Hide (the tray icon stays)'}"/>
       <Separator/>
-      <MenuItem x:Name="WExit" Header="Вийти"/>
+      <MenuItem x:Name="WExit" Header="{l:Tr 'Вийти', 'Exit'}"/>
     </ContextMenu>
   </Window.ContextMenu>
   <Border x:Name="Card" Margin="14" CornerRadius="15" Padding="16,12,16,12" Width="272"
@@ -65,7 +66,7 @@
 
         <!-- ЗЛІВА: батарея -->
         <StackPanel x:Name="BatteryCol" Grid.Column="0" VerticalAlignment="Top">
-          <TextBlock Text="БАТАРЕЯ" Foreground="#6B7078" FontSize="10" FontWeight="SemiBold"/>
+          <TextBlock Text="{l:Tr 'БАТАРЕЯ', 'BATTERY'}" Foreground="#6B7078" FontSize="10" FontWeight="SemiBold"/>
           <StackPanel x:Name="Rows"/>
           <TextBlock x:Name="Hint" Foreground="#8A8F98" FontSize="11" TextWrapping="Wrap" Margin="0,6,0,2" Visibility="Collapsed"/>
           <TextBlock x:Name="Updated" Foreground="#6B7078" FontSize="10" Margin="0,2,0,0"/>
@@ -93,7 +94,7 @@
 
         <!-- СПРАВА: розклад з Google Календаря -->
         <StackPanel x:Name="CalCol" Grid.Column="4" ClipToBounds="True" VerticalAlignment="Top">
-          <TextBlock Text="РОЗКЛАД" Foreground="#6B7078" FontSize="10" FontWeight="SemiBold"/>
+          <TextBlock Text="{l:Tr 'РОЗКЛАД', 'SCHEDULE'}" Foreground="#6B7078" FontSize="10" FontWeight="SemiBold"/>
           <StackPanel x:Name="CalRows" Margin="0,4,0,0"/>
           <TextBlock x:Name="CalHint" Foreground="#8A8F98" FontSize="11" TextWrapping="Wrap" Margin="0,6,0,0" Visibility="Collapsed"/>
         </StackPanel>

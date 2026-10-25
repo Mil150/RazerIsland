@@ -7,7 +7,8 @@ namespace RazerIsland.Core;
 public static class AppInfo
 {
     public const string Name = "Razer Island";
-    public const string Description = "Заряд Razer, годинник, погода, розклад і мікрофон Discord";
+    public static string Description => L.T("Заряд Razer, годинник, погода, розклад і мікрофон Discord",
+                                            "Razer battery, clock, weather, schedule and Discord microphone");
 
     public static string Version { get; } =
         typeof(AppInfo).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion
