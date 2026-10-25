@@ -1,0 +1,73 @@
+# Збірка Razer Island на GitHub Actions.
+#  - push у master / pull request / ручний запуск — лише збірка (інсталятор у Artifacts);
+#  - push тегу v* (напр. v0.2.2) — збірка + реліз з інсталятором і описом із CHANGELOG.md.
+name: Build
+
+on:
+  push:
+    branches: [master]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Install Inno Setup
+        run: choco install innosetup --no-progress -y
+
+      - name: Check tag matches project version
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: pwsh
+        run: |
+          $version = ([xml](Get-Content src/RazerIsland/RazerIsland.csproj)).Project.PropertyGroup.Version | Where-Object { $_ } | Select-Object -First 1
+          if ("v$version" -ne '${{ github.ref_name }}') { throw "Тег ${{ github.ref_name }} не збігається з <Version>$version</Version> у RazerIsland.csproj" }
+
+      - name: Build
+        shell: pwsh
+        run: ./build.ps1
+
+      - name: Upload installer
+        id: upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: installer
+          path: artifacts/installer/*.exe
+          if-no-files-found: error
+
+      # --- Підпис через SignPath Foundation (розкоментувати після схвалення проєкту) ---
+      # Потрібні секрет SIGNPATH_API_TOKEN і значення з кабінету SignPath.
+      # Підписується setup.exe: саме його завантажують і перевіряє SmartScreen.
+      # - name: Sign installer
+      #   uses: signpath/github-action-submit-signing-request@v1
+      #   with:
+      #     api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+      #     organization-id: '<organization-id>'
+      #     project-slug: 'RazerIsland'
+      #     signing-policy-slug: 'release-signing'
+      #     github-artifact-id: ${{ steps.upload.outputs.artifact-id }}
+      #     wait-for-completion: true
+      #     output-artifact-directory: artifacts/installer
+
+      - name: Publish release
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $version = '${{ github.ref_name }}'.TrimStart('v')
+          $changelog = Get-Content CHANGELOG.md -Raw
+          $notes = if ($changelog -match "(?ms)^## $([regex]::Escape($version))\b[^\n]*\n(.*?)(?=^## |\z)") { $Matches[1].Trim() } else { "Razer Island $version" }
+          $notes += "`n`n[CHANGELOG.md](https://github.com/${{ github.repository }}/blob/${{ github.ref_name }}/CHANGELOG.md)"
+          Set-Content release-notes.md $notes -Encoding utf8
+          gh release create '${{ github.ref_name }}' (Get-ChildItem artifacts/installer/*.exe).FullName --title "Razer Island $version" --notes-file release-notes.md

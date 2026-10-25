@@ -20,6 +20,9 @@ dotnet build                 # розробка
 
 Версія задається в `src\RazerIsland\RazerIsland.csproj` (`<Version>`), інсталятор бере її з exe. Зміни — у [CHANGELOG.md](CHANGELOG.md).
 
+### Випуск версії
+
+Кожен push у `master` збирає GitHub Actions ([build.yml](.github/workflows/build.yml)); інсталятор лежить в *Artifacts* запуску. Щоб випустити реліз: змінити `<Version>` у `RazerIsland.csproj`, додати розділ `## <версія>` у `CHANGELOG.md`, закомітити й запушити тег `v<версія>` — workflow збере інсталятор і створить реліз з описом із CHANGELOG.
 ## Структура
 
 ```

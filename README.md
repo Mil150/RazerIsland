@@ -43,6 +43,10 @@ dotnet build                 # development build
 
 The installer needs [Inno Setup 6](https://jrsoftware.org/isinfo.php) (`winget install JRSoftware.InnoSetup`). The version is set once in `src\RazerIsland\RazerIsland.csproj` (`<Version>`); the installer reads it from the exe. Changes are listed in [CHANGELOG.md](CHANGELOG.md) (in Ukrainian).
 
+### Releasing
+
+Every push to `master` is built by GitHub Actions ([build.yml](.github/workflows/build.yml)); the installer is available under the run's *Artifacts*. To publish a release: bump `<Version>` in `RazerIsland.csproj`, add a `## <version>` section to `CHANGELOG.md`, commit and push a tag `v<version>` — the workflow builds the installer and creates the GitHub release with notes from the changelog.
+
 ## Project structure
 
 ```
