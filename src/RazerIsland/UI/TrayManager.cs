@@ -40,11 +40,12 @@ public sealed class TrayManager : IDisposable
     {
         var it = GetItem(d.Serial);
         bool light = TrayIconRenderer.SystemUsesLightTheme();
-        var key = $"{d.Level}|{state}|{light}|{trayStyle}|{d.Category}";
+        int size = TrayIconRenderer.TraySize;
+        var key = $"{d.Level}|{state}|{light}|{trayStyle}|{d.Category}|{size}";
         if (it.Key != key)
         {
             it.Key = key;
-            using var bmp = TrayIconRenderer.Render(d.Level, d.Category, state, light, trayStyle == "number");
+            using var bmp = TrayIconRenderer.Render(d.Level, d.Category, state, light, trayStyle == "number", size);
             var h = bmp.GetHicon();
             it.Icon.Icon = System.Drawing.Icon.FromHandle(h);
             if (it.Handle != IntPtr.Zero) Native.DestroyIcon(it.Handle);
