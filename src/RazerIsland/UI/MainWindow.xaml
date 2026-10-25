@@ -1,0 +1,105 @@
+<Window x:Class="RazerIsland.UI.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Razer Battery" WindowStyle="None" AllowsTransparency="True" Background="Transparent"
+        ResizeMode="NoResize" ShowInTaskbar="False" Topmost="False" Width="828" Height="200"
+        UseLayoutRounding="True" FontFamily="Segoe UI" WindowStartupLocation="Manual">
+  <Window.ContextMenu>
+    <ContextMenu x:Name="Ctx">
+      <MenuItem x:Name="WSettings" Header="Налаштування…" FontWeight="SemiBold"/>
+      <Separator/>
+      <MenuItem x:Name="WModeStrip" Header="Вигляд: острівець зверху (розкривається при наведенні)" IsCheckable="True"/>
+      <MenuItem x:Name="WModeFull" Header="Вигляд: плаваюча картка (завжди розкрита)" IsCheckable="True"/>
+      <Separator/>
+      <MenuItem x:Name="WPin" Header="Закріпити на місці" IsCheckable="True"/>
+      <MenuItem x:Name="WTop" Header="Поверх усіх вікон" IsCheckable="True"/>
+      <MenuItem x:Name="WHide" Header="Сховати (іконка в треї лишиться)"/>
+      <Separator/>
+      <MenuItem x:Name="WExit" Header="Вийти"/>
+    </ContextMenu>
+  </Window.ContextMenu>
+  <Border x:Name="Card" Margin="14" CornerRadius="15" Padding="16,12,16,12" Width="272"
+          HorizontalAlignment="Center" VerticalAlignment="Top"
+          Background="#CC141619" BorderBrush="#26FFFFFF" BorderThickness="1">
+    <Border.Effect>
+      <DropShadowEffect BlurRadius="16" ShadowDepth="0" Opacity="0.3" Color="Black"/>
+    </Border.Effect>
+    <StackPanel>
+      <Border x:Name="Strip" ClipToBounds="True" Height="0" Opacity="0">
+        <Grid VerticalAlignment="Center">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/>
+          </Grid.ColumnDefinitions>
+          <StackPanel x:Name="LeftItems" Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+          <StackPanel x:Name="StripCenter" Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="14,0,14,0">
+            <Border x:Name="MicBadgeHost" VerticalAlignment="Center" Margin="0,0,6,0" Visibility="Collapsed"/>
+            <TextBlock x:Name="StripClock" Foreground="#F2F3F5" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center"/>
+          </StackPanel>
+          <StackPanel x:Name="RightItems" Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+        </Grid>
+      </Border>
+      <Border x:Name="Notice" ClipToBounds="True" Height="0" Opacity="0">
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+          <Border x:Name="NoticeIconHost" VerticalAlignment="Center"/>
+          <TextBlock x:Name="NoticeText" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center" Margin="10,0,0,0"/>
+        </StackPanel>
+      </Border>
+      <Border x:Name="Details" ClipToBounds="True">
+      <StackPanel x:Name="DetailsContent">
+      <Grid Margin="0,0,0,6">
+        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Left">
+          <Ellipse Width="8" Height="8" Fill="#44D62C" Margin="0,0,8,0" VerticalAlignment="Center"/>
+          <TextBlock Text="RAZER" Foreground="#44D62C" FontWeight="Bold" FontSize="12"/>
+        </StackPanel>
+        <TextBlock x:Name="PinBtn" HorizontalAlignment="Right" VerticalAlignment="Center" FontSize="13" Cursor="Hand"
+                   FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" Background="Transparent"/>
+      </Grid>
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="230"/>
+          <ColumnDefinition Width="Auto"/>
+          <ColumnDefinition Width="*"/>
+          <ColumnDefinition Width="Auto"/>
+          <ColumnDefinition Width="260"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- ЗЛІВА: батарея -->
+        <StackPanel x:Name="BatteryCol" Grid.Column="0" VerticalAlignment="Top">
+          <TextBlock Text="БАТАРЕЯ" Foreground="#6B7078" FontSize="10" FontWeight="SemiBold"/>
+          <StackPanel x:Name="Rows"/>
+          <TextBlock x:Name="Hint" Foreground="#8A8F98" FontSize="11" TextWrapping="Wrap" Margin="0,6,0,2" Visibility="Collapsed"/>
+          <TextBlock x:Name="Updated" Foreground="#6B7078" FontSize="10" Margin="0,2,0,0"/>
+        </StackPanel>
+
+        <Border Grid.Column="1" Width="1" Background="#1FFFFFFF" Margin="16,2,16,2"/>
+
+        <!-- ПОСЕРЕДИНІ: годинник, дата, погода -->
+        <Border x:Name="CenterCol" Grid.Column="2" ClipToBounds="True" VerticalAlignment="Top">
+        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+          <TextBlock x:Name="HeaderClock" HorizontalAlignment="Center" Foreground="#F2F3F5" FontSize="40" FontWeight="SemiBold"/>
+          <TextBlock x:Name="DateText" HorizontalAlignment="Center" Foreground="#A9ADB5" FontSize="12" Margin="0,-4,0,0"/>
+          <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,8,0,0">
+            <TextBlock x:Name="WeatherIcon" FontFamily="Segoe UI Symbol" FontSize="22" Foreground="#F2F3F5" VerticalAlignment="Center" Margin="0,0,8,0"/>
+            <TextBlock x:Name="WeatherTemp" FontSize="22" FontWeight="SemiBold" Foreground="#F2F3F5" VerticalAlignment="Center" Margin="0,0,10,0"/>
+            <StackPanel VerticalAlignment="Center">
+              <TextBlock x:Name="WeatherText" Foreground="#A9ADB5" FontSize="11"/>
+              <TextBlock x:Name="WeatherCity" Foreground="#6B7078" FontSize="10"/>
+            </StackPanel>
+          </StackPanel>
+        </StackPanel>
+        </Border>
+
+        <Border Grid.Column="3" Width="1" Background="#1FFFFFFF" Margin="16,2,16,2"/>
+
+        <!-- СПРАВА: розклад з Google Календаря -->
+        <StackPanel x:Name="CalCol" Grid.Column="4" ClipToBounds="True" VerticalAlignment="Top">
+          <TextBlock Text="РОЗКЛАД" Foreground="#6B7078" FontSize="10" FontWeight="SemiBold"/>
+          <StackPanel x:Name="CalRows" Margin="0,4,0,0"/>
+          <TextBlock x:Name="CalHint" Foreground="#8A8F98" FontSize="11" TextWrapping="Wrap" Margin="0,6,0,0" Visibility="Collapsed"/>
+        </StackPanel>
+      </Grid>
+      </StackPanel>
+      </Border>
+    </StackPanel>
+  </Border>
+</Window>

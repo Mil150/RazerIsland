@@ -1,0 +1,15 @@
+<Window x:Class="RazerIsland.UI.MicWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        WindowStyle="None" AllowsTransparency="True" Background="Transparent" ResizeMode="NoResize"
+        ShowInTaskbar="False" Topmost="True" ShowActivated="False" Width="420" Height="80"
+        UseLayoutRounding="True" FontFamily="Segoe UI">
+  <Border x:Name="MCard" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="14,0,14,14"
+          CornerRadius="0,0,14,14" Background="#E6050506" BorderBrush="#26FFFFFF" BorderThickness="1,0,1,1" Padding="14,5,14,6">
+    <Border.Effect><DropShadowEffect BlurRadius="14" ShadowDepth="0" Opacity="0.35" Color="Black"/></Border.Effect>
+    <StackPanel Orientation="Horizontal">
+      <Border x:Name="MIconHost" VerticalAlignment="Center"/>
+      <TextBlock x:Name="MText" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center" Margin="10,0,2,0"/>
+    </StackPanel>
+  </Border>
+</Window>
