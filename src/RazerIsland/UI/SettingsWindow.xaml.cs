@@ -38,6 +38,7 @@ public partial class SettingsWindow : Window
         _nav = [N1, N2, N3, N4, N5, N6];
         VersionText.Text = L.T("версія ", "version ") + AppInfo.Version;
         try { Icon = BitmapFrame.Create(new Uri("pack://application:,,,/Assets/app.ico")); } catch { }
+        SourceInitialized += (_, _) => Native.UseDarkTitleBar(new System.Windows.Interop.WindowInteropHelper(this).Handle);
 
         // посилання відкриваються в браузері
         AddHandler(Hyperlink.RequestNavigateEvent, new RequestNavigateEventHandler((_, e) =>
@@ -55,8 +56,8 @@ public partial class SettingsWindow : Window
 
         BtnBatRefresh.Click += (_, _) => { _app.RescanDevices(); UpdateBatteryStatus(); };
 
-        RbLangUk.Checked += (_, _) => { if (!_loading) { SaveCalendarQuietly(); _app.SetLanguage("uk"); } };
-        RbLangEn.Checked += (_, _) => { if (!_loading) { SaveCalendarQuietly(); _app.SetLanguage("en"); } };
+        foreach (var (rb, lang) in new[] { (RbLangUk, "uk"), (RbLangEn, "en"), (RbLangUk0, "uk"), (RbLangEn0, "en") })
+            rb.Checked += (_, _) => { if (!_loading) { SaveCalendarQuietly(); _app.SetLanguage(lang); } };
         RbIsland.Checked += (_, _) => { if (!_loading) { _app.SetMode("strip", true); CbPin.IsEnabled = false; } };
         RbCard.Checked += (_, _) => { if (!_loading) { _app.SetMode("full", true); CbPin.IsEnabled = true; } };
         CbTop.Click += (_, _) => _app.SetTopmost(CbTop.IsChecked == true);
@@ -177,8 +178,8 @@ public partial class SettingsWindow : Window
         try
         {
             LoadBehavior();
-            RbLangUk.IsChecked = !L.En;
-            RbLangEn.IsChecked = L.En;
+            RbLangUk.IsChecked = RbLangUk0.IsChecked = !L.En;
+            RbLangEn.IsChecked = RbLangEn0.IsChecked = L.En;
             var op = S.SafeBgOpacity;
             SlOpacity.Value = Math.Round(op * 100);
             LblOpacity.Text = $"{Math.Round(op * 100)}%";

@@ -6,7 +6,48 @@
         ResizeMode="NoResize" ShowInTaskbar="False" Topmost="False" Width="828" Height="200"
         UseLayoutRounding="True" FontFamily="Segoe UI" WindowStartupLocation="Manual">
   <Window.ContextMenu>
-    <ContextMenu x:Name="Ctx">
+    <ContextMenu x:Name="Ctx" HasDropShadow="False" FontFamily="Segoe UI" FontSize="13">
+      <ContextMenu.Template>
+        <ControlTemplate TargetType="ContextMenu">
+          <Border Background="#1B1E23" BorderBrush="#33FFFFFF" BorderThickness="1" CornerRadius="10" Padding="5" Margin="0,0,8,8">
+            <Border.Effect><DropShadowEffect BlurRadius="12" ShadowDepth="2" Opacity="0.45" Color="Black"/></Border.Effect>
+            <ItemsPresenter/>
+          </Border>
+        </ControlTemplate>
+      </ContextMenu.Template>
+      <ContextMenu.Resources>
+        <Style TargetType="MenuItem">
+          <Setter Property="Foreground" Value="#E6E8EB"/>
+          <Setter Property="Cursor" Value="Hand"/>
+          <Setter Property="Template">
+            <Setter.Value>
+              <ControlTemplate TargetType="MenuItem">
+                <Border x:Name="bd" Background="Transparent" CornerRadius="6" Padding="8,7,16,7">
+                  <Grid>
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="24"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                    <Path x:Name="check" Data="M 2,7 L 5.5,10.5 L 12,3.5" Stroke="#44D62C" StrokeThickness="2"
+                          StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" VerticalAlignment="Center" Visibility="Collapsed"/>
+                    <ContentPresenter Grid.Column="1" ContentSource="Header" RecognizesAccessKey="True" VerticalAlignment="Center"/>
+                  </Grid>
+                </Border>
+                <ControlTemplate.Triggers>
+                  <Trigger Property="IsHighlighted" Value="True"><Setter TargetName="bd" Property="Background" Value="#2A2D33"/></Trigger>
+                  <Trigger Property="IsChecked" Value="True"><Setter TargetName="check" Property="Visibility" Value="Visible"/></Trigger>
+                </ControlTemplate.Triggers>
+              </ControlTemplate>
+            </Setter.Value>
+          </Setter>
+        </Style>
+        <Style x:Key="{x:Static MenuItem.SeparatorStyleKey}" TargetType="Separator">
+          <Setter Property="Template">
+            <Setter.Value>
+              <ControlTemplate TargetType="Separator">
+                <Border Height="1" Margin="8,4" Background="#2A2D33"/>
+              </ControlTemplate>
+            </Setter.Value>
+          </Setter>
+        </Style>
+      </ContextMenu.Resources>
       <MenuItem x:Name="WSettings" Header="{l:Tr 'Налаштування…', 'Settings…'}" FontWeight="SemiBold"/>
       <Separator/>
       <MenuItem x:Name="WModeStrip" Header="{l:Tr 'Вигляд: острівець зверху (розкривається при наведенні)', 'View: island at the top (expands on hover)'}" IsCheckable="True"/>

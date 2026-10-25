@@ -44,27 +44,89 @@
       <Setter Property="Padding" Value="12,9"/>
       <Setter Property="Margin" Value="0,1"/>
     </Style>
+    <!-- поля вводу: заокруглена рамка, зелена при фокусі -->
+    <ControlTemplate x:Key="InputTemplate" TargetType="Control">
+      <Border x:Name="b" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="8">
+        <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}" Focusable="False"/>
+      </Border>
+      <ControlTemplate.Triggers>
+        <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="b" Property="BorderBrush" Value="#555A63"/></Trigger>
+        <Trigger Property="IsKeyboardFocusWithin" Value="True"><Setter TargetName="b" Property="BorderBrush" Value="#44D62C"/></Trigger>
+        <Trigger Property="IsEnabled" Value="False"><Setter TargetName="b" Property="Opacity" Value="0.4"/></Trigger>
+      </ControlTemplate.Triggers>
+    </ControlTemplate>
     <Style TargetType="TextBox">
       <Setter Property="Background" Value="#1E2126"/>
       <Setter Property="Foreground" Value="#F2F3F5"/>
       <Setter Property="CaretBrush" Value="#F2F3F5"/>
+      <Setter Property="SelectionBrush" Value="#44D62C"/>
       <Setter Property="BorderBrush" Value="#33FFFFFF"/>
       <Setter Property="Padding" Value="8,6"/>
+      <Setter Property="Template" Value="{StaticResource InputTemplate}"/>
     </Style>
     <Style TargetType="PasswordBox">
       <Setter Property="Background" Value="#1E2126"/>
       <Setter Property="Foreground" Value="#F2F3F5"/>
       <Setter Property="CaretBrush" Value="#F2F3F5"/>
+      <Setter Property="SelectionBrush" Value="#44D62C"/>
       <Setter Property="BorderBrush" Value="#33FFFFFF"/>
       <Setter Property="Padding" Value="8,6"/>
+      <Setter Property="Template" Value="{StaticResource InputTemplate}"/>
     </Style>
+    <!-- галочка: заокруглений квадрат, зелений із позначкою, коли ввімкнено -->
     <Style TargetType="CheckBox">
       <Setter Property="Foreground" Value="#E6E8EB"/>
       <Setter Property="Margin" Value="0,5"/>
+      <Setter Property="Cursor" Value="Hand"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="CheckBox">
+            <StackPanel x:Name="root" Orientation="Horizontal" Background="Transparent">
+              <Border x:Name="box" Width="18" Height="18" CornerRadius="5" BorderThickness="1.5" BorderBrush="#555A63" Background="#1E2126" VerticalAlignment="Center">
+                <Path x:Name="mark" Data="M 3.5,8.5 L 7,12 L 13,5" Stroke="#0B0C0E" StrokeThickness="2.2"
+                      StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" Visibility="Collapsed"/>
+              </Border>
+              <ContentPresenter Margin="10,0,0,0" VerticalAlignment="Center" RecognizesAccessKey="True"/>
+            </StackPanel>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="box" Property="BorderBrush" Value="#7BE866"/></Trigger>
+              <Trigger Property="IsChecked" Value="True">
+                <Setter TargetName="box" Property="Background" Value="#44D62C"/>
+                <Setter TargetName="box" Property="BorderBrush" Value="#44D62C"/>
+                <Setter TargetName="mark" Property="Visibility" Value="Visible"/>
+              </Trigger>
+              <Trigger Property="IsEnabled" Value="False"><Setter TargetName="root" Property="Opacity" Value="0.4"/></Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
     </Style>
+    <!-- перемикач: коло із зеленою крапкою, коли вибрано -->
     <Style TargetType="RadioButton">
       <Setter Property="Foreground" Value="#E6E8EB"/>
       <Setter Property="Margin" Value="0,5"/>
+      <Setter Property="Cursor" Value="Hand"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="RadioButton">
+            <StackPanel x:Name="root" Orientation="Horizontal" Background="Transparent">
+              <Grid Width="18" Height="18" VerticalAlignment="Center">
+                <Ellipse x:Name="ring" Stroke="#555A63" StrokeThickness="1.5" Fill="#1E2126"/>
+                <Ellipse x:Name="dot" Width="8" Height="8" Fill="#44D62C" Visibility="Collapsed"/>
+              </Grid>
+              <ContentPresenter Margin="10,0,0,0" VerticalAlignment="Center" RecognizesAccessKey="True"/>
+            </StackPanel>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="ring" Property="Stroke" Value="#7BE866"/></Trigger>
+              <Trigger Property="IsChecked" Value="True">
+                <Setter TargetName="ring" Property="Stroke" Value="#44D62C"/>
+                <Setter TargetName="dot" Property="Visibility" Value="Visible"/>
+              </Trigger>
+              <Trigger Property="IsEnabled" Value="False"><Setter TargetName="root" Property="Opacity" Value="0.4"/></Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
     </Style>
     <Style x:Key="H1" TargetType="TextBlock">
       <Setter Property="Foreground" Value="#F2F3F5"/>
@@ -83,6 +145,97 @@
       <Setter Property="CornerRadius" Value="10"/>
       <Setter Property="Padding" Value="14,12"/>
       <Setter Property="Margin" Value="0,6,0,0"/>
+    </Style>
+    <!-- повзунок: темна доріжка, зелена заповнена частина, світлий кружечок -->
+    <Style x:Key="SliderPart" TargetType="RepeatButton">
+      <Setter Property="OverridesDefaultStyle" Value="True"/>
+      <Setter Property="Focusable" Value="False"/>
+      <Setter Property="IsTabStop" Value="False"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="RepeatButton">
+            <Border Background="Transparent">
+              <Border Height="4" CornerRadius="2" Background="{TemplateBinding Background}" VerticalAlignment="Center"/>
+            </Border>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+    <Style TargetType="Slider">
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="Slider">
+            <Grid Height="22" Background="Transparent">
+              <Border Height="4" CornerRadius="2" Background="#2A2D33" VerticalAlignment="Center"/>
+              <Track x:Name="PART_Track">
+                <Track.DecreaseRepeatButton>
+                  <RepeatButton Style="{StaticResource SliderPart}" Background="#44D62C" Command="Slider.DecreaseLarge"/>
+                </Track.DecreaseRepeatButton>
+                <Track.IncreaseRepeatButton>
+                  <RepeatButton Style="{StaticResource SliderPart}" Background="Transparent" Command="Slider.IncreaseLarge"/>
+                </Track.IncreaseRepeatButton>
+                <Track.Thumb>
+                  <Thumb>
+                    <Thumb.Template>
+                      <ControlTemplate TargetType="Thumb">
+                        <Ellipse x:Name="k" Width="16" Height="16" Fill="#F2F3F5"/>
+                        <ControlTemplate.Triggers>
+                          <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="k" Property="Fill" Value="#7BE866"/></Trigger>
+                          <Trigger Property="IsDragging" Value="True"><Setter TargetName="k" Property="Fill" Value="#44D62C"/></Trigger>
+                        </ControlTemplate.Triggers>
+                      </ControlTemplate>
+                    </Thumb.Template>
+                  </Thumb>
+                </Track.Thumb>
+              </Track>
+            </Grid>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+    <!-- тонка темна смуга прокрутки замість стандартної світлої -->
+    <Style TargetType="Thumb" x:Key="ScrollThumb">
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="Thumb">
+            <Border x:Name="t" Background="#3A3E46" CornerRadius="3"/>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="t" Property="Background" Value="#555A63"/></Trigger>
+              <Trigger Property="IsDragging" Value="True"><Setter TargetName="t" Property="Background" Value="#6B7078"/></Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+    <Style TargetType="ScrollBar">
+      <Setter Property="Width" Value="6"/>
+      <Setter Property="MinWidth" Value="6"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="ScrollBar">
+            <Track x:Name="PART_Track" IsDirectionReversed="True">
+              <Track.Thumb><Thumb Style="{StaticResource ScrollThumb}"/></Track.Thumb>
+            </Track>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+      <Style.Triggers>
+        <Trigger Property="Orientation" Value="Horizontal">
+          <Setter Property="Width" Value="Auto"/>
+          <Setter Property="MinWidth" Value="0"/>
+          <Setter Property="Height" Value="6"/>
+          <Setter Property="MinHeight" Value="6"/>
+          <Setter Property="Template">
+            <Setter.Value>
+              <ControlTemplate TargetType="ScrollBar">
+                <Track x:Name="PART_Track">
+                  <Track.Thumb><Thumb Style="{StaticResource ScrollThumb}"/></Track.Thumb>
+                </Track>
+              </ControlTemplate>
+            </Setter.Value>
+          </Setter>
+        </Trigger>
+      </Style.Triggers>
     </Style>
   </Window.Resources>
 
@@ -125,22 +278,27 @@
       </StackPanel>
 
       <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-        <Grid x:Name="Pages">
+        <Grid x:Name="Pages" Margin="0,0,16,0">
 
           <!-- 0: Вітання -->
           <StackPanel x:Name="P0">
+            <TextBlock Style="{StaticResource H2}" Text="МОВА · LANGUAGE" Margin="0,0,0,4"/>
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,18">
+              <RadioButton x:Name="RbLangUk0" GroupName="lang0" Content="Українська" Margin="0,5,24,5"/>
+              <RadioButton x:Name="RbLangEn0" GroupName="lang0" Content="English"/>
+            </StackPanel>
             <TextBlock Style="{StaticResource H1}" Text="{l:Tr 'Вітаю в Razer Island', 'Welcome to Razer Island'}"/>
             <TextBlock Text="{l:Tr 'Це віджет-острівець угорі екрана, як Dynamic Island в айфоні. Він показує:', 'A widget island at the top of the screen, like the Dynamic Island on an iPhone. It shows:'}"/>
             <Border Style="{StaticResource Box}">
               <StackPanel>
                 <TextBlock LineHeight="22" Visibility="{l:Only uk}">
-                  • заряд бездротової мишки й навушників Razer (і в треї біля годинника);<LineBreak/>
+                  • заряд бездротових пристроїв — Razer, Bluetooth та інших (і в треї біля годинника);<LineBreak/>
                   • годинник, дату й погоду;<LineBreak/>
                   • твій розклад із Google Календаря;<LineBreak/>
                   • стан мікрофона в Discord — вимкнений мікрофон видно поверх усіх вікон.
                 </TextBlock>
                 <TextBlock LineHeight="22" Visibility="{l:Only en}">
-                  • battery of your wireless Razer mouse and headset (also in the tray next to the clock);<LineBreak/>
+                  • battery of your wireless devices — Razer, Bluetooth and more (also in the tray next to the clock);<LineBreak/>
                   • the time, date and weather;<LineBreak/>
                   • your schedule from Google Calendar;<LineBreak/>
                   • your Discord microphone state — a muted mic is shown on top of all windows.

@@ -21,6 +21,10 @@ public sealed class TrayManager : IDisposable
     public TrayManager(Action openSettings, Action toggleWidget, Action exit)
     {
         _toggleWidget = toggleWidget;
+        _menu.Renderer = new Forms.ToolStripProfessionalRenderer(new DarkMenuColors()) { RoundedEdges = false };
+        _menu.BackColor = DarkMenuColors.Back;
+        _menu.ForeColor = System.Drawing.Color.FromArgb(0xE6, 0xE8, 0xEB);
+        _menu.ShowImageMargin = false;
         var settings = new Forms.ToolStripMenuItem(L.T("Налаштування…", "Settings…"));
         settings.Font = new System.Drawing.Font(settings.Font, System.Drawing.FontStyle.Bold);
         settings.Click += (_, _) => openSettings();
@@ -28,6 +32,22 @@ public sealed class TrayManager : IDisposable
         _menu.Items.Add(L.T("Показати / сховати віджет", "Show / hide widget"), null, (_, _) => toggleWidget());
         _menu.Items.Add(new Forms.ToolStripSeparator());
         _menu.Items.Add(L.T("Вийти", "Exit"), null, (_, _) => exit());
+        foreach (Forms.ToolStripItem item in _menu.Items)
+            if (item is not Forms.ToolStripSeparator) item.Padding = new Forms.Padding(6, 5, 16, 5);
+    }
+
+    // кольори як у вікні налаштувань і меню віджета
+    private sealed class DarkMenuColors : Forms.ProfessionalColorTable
+    {
+        public static readonly System.Drawing.Color Back = System.Drawing.Color.FromArgb(0x1B, 0x1E, 0x23);
+        private static readonly System.Drawing.Color Hover = System.Drawing.Color.FromArgb(0x2A, 0x2D, 0x33);
+        private static readonly System.Drawing.Color Border = System.Drawing.Color.FromArgb(0x33, 0x37, 0x3D);
+        public override System.Drawing.Color ToolStripDropDownBackground => Back;
+        public override System.Drawing.Color MenuBorder => Border;
+        public override System.Drawing.Color MenuItemBorder => Hover;
+        public override System.Drawing.Color MenuItemSelected => Hover;
+        public override System.Drawing.Color SeparatorDark => Hover;
+        public override System.Drawing.Color SeparatorLight => Back;
     }
 
     /// <summary>Скинути кеш іконок (зміна стилю або теми).</summary>

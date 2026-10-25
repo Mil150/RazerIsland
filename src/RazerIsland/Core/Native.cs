@@ -24,6 +24,16 @@ internal static partial class Native
     [return: MarshalAs(UnmanagedType.Bool)]
     public static partial bool DestroyIcon(IntPtr h);
 
+    [LibraryImport("dwmapi.dll")]
+    private static partial int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref int value, int size);
+
+    /// <summary>Темний заголовок вікна (Windows 10 20H1+ / 11; на старіших нічого не робить).</summary>
+    public static void UseDarkTitleBar(IntPtr hwnd)
+    {
+        int on = 1;
+        DwmSetWindowAttribute(hwnd, 20, ref on, sizeof(int)); // DWMWA_USE_IMMERSIVE_DARK_MODE
+    }
+
     public static long GetLong(IntPtr h, int i) => GetWindowLongPtr(h, i).ToInt64();
     public static void SetLong(IntPtr h, int i, long v) => SetWindowLongPtr(h, i, new IntPtr(v));
 }
