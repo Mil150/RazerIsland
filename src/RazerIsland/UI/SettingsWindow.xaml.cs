@@ -306,7 +306,7 @@ public partial class SettingsWindow : Window
             var place = await _app.SetWeatherCityAsync(name);
             if (place is null)
             {
-                CityStatus.Text = L.T("Місто не знайдено. Спробуй латиницею, наприклад: Riihimaki.", "City not found. Try another spelling, e.g. Riihimaki.");
+                CityStatus.Text = L.T("Місто не знайдено. Спробуй латиницею, наприклад: Kyiv.", "City not found. Try another spelling, e.g. Kyiv.");
                 return;
             }
             CityStatus.Text = $"\u2713 {L.T("Збережено", "Saved")}: {place.Name}{(place.Country.Length > 0 ? ", " + place.Country : "")}";

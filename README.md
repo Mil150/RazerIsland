@@ -2,6 +2,8 @@
 
 **English** · [Українська](README.uk.md)
 
+![Razer Island — expanded card](docs/screenshot.png)
+
 A Dynamic Island–style widget for Windows. A small island at the top of the screen shows the battery of your wireless devices, the time, the weather, your next calendar events and your Discord microphone state. Hover over it to expand it, or switch to a floating card that is always open.
 
 ## Features
@@ -67,3 +69,7 @@ For testing, the `RAZER_ISLAND_HOME` environment variable points the app to a se
 `src/RazerIsland/Native/iCUESDK.x64_2019.dll` is Corsair iCUE SDK v4.0.84 from the official [CorsairOfficial/cue-sdk](https://github.com/CorsairOfficial/cue-sdk) releases (`redist` folder, signed by Corsair Memory, Inc.). The Logitech HID++ and SteelSeries protocols are implemented independently from the public protocol descriptions in [Solaar](https://github.com/pwr-Solaar/Solaar) and [HeadsetControl](https://github.com/Sapd/HeadsetControl); no code was copied from those projects.
 
 Razer, Logitech, SteelSeries, Corsair and Discord are trademarks of their respective owners. This project is not affiliated with any of them.
+
+## License
+
+[MIT](LICENSE) © 2026 Mil150. The bundled Corsair iCUE SDK DLL is distributed under Corsair's own terms.

@@ -2,6 +2,8 @@
 
 [English](README.md) · **Українська**
 
+![Razer Island — розкрита картка](docs/screenshot.png)
+
 Віджет-острівець угорі екрана (як Dynamic Island): заряд бездротових пристроїв (Razer з логів Razer Synapse 4, Bluetooth, експериментально Logitech, SteelSeries і Corsair) і в треї, годинник, погода (open-meteo.com), розклад із Google Календаря (iCal) і стан мікрофона Discord (локальний RPC).
 
 C# / .NET 10 WPF, Windows 10 1809+ x64.
@@ -42,3 +44,7 @@ installer/RazerIsland.iss
 `%LOCALAPPDATA%\Razer Island\`: `settings.json`, `calendars.txt`, `error.log`. Формат `settings.json` сумісний із PowerShell-версією; під час першого запуску файли копіюються з її теки.
 
 Для тестів змінна середовища `RAZER_ISLAND_HOME` задає окрему теку даних. Такий екземпляр не конфліктує з основним і не змінює автозапуск.
+
+## Ліцензія
+
+[MIT](LICENSE) © 2026 Mil150. DLL Corsair iCUE SDK поширюється на умовах Corsair.

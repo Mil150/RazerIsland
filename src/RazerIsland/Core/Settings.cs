@@ -19,9 +19,9 @@ public sealed class Settings
     /// <summary>"icon" — значок пристрою, "number" — цифри.</summary>
     public string TrayStyle { get; set; } = "icon";
 
-    public double WeatherLat { get; set; } = 60.7377;
-    public double WeatherLon { get; set; } = 24.7774;
-    public string WeatherCity { get; set; } = "Riihimäki";
+    public double WeatherLat { get; set; } = 50.4501;
+    public double WeatherLon { get; set; } = 30.5234;
+    public string WeatherCity { get; set; } = "Kyiv";
 
     public string DiscordClientId { get; set; } = "";
     public string DiscordClientSecret { get; set; } = "";
