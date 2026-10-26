@@ -20,6 +20,8 @@ public sealed partial class SynapseLogReader(string logDir)
     {
         if (!Directory.Exists(logDir)) return null;
         var all = new DirectoryInfo(logDir).GetFiles("*.log");
+        // розмір і час у списку каталогу для файлів, які Synapse тримає відкритими, оновлюються із запізненням
+        foreach (var f in all) f.Refresh();
 
         DeviceSnapshot? best = null;
         foreach (var f in all.Where(f => f.Name.StartsWith("systray_systrayv", StringComparison.OrdinalIgnoreCase))
@@ -112,7 +114,9 @@ public sealed partial class SynapseLogReader(string logDir)
             int q = seg.IndexOf('"');
             devices.Add(new RazerDevice
             {
-                Serial = q > 0 ? seg[..q] : "",
+                // Synapse інколи пише "NOSERIALNUMBER" замість серійного — ключ за моделлю, щоб не було дублів.
+                // shortcut: два однакові пристрої зіллються в один рядок; якщо знадобиться — ключ productId + стабільний серійний.
+                Serial = pr.Success ? "razer:" + pr.Groups[1].Value : q > 0 ? seg[..q] : "",
                 Name = nm.Success ? RxRazerPrefix().Replace(nm.Groups[1].Value, "") : "Razer",
                 Category = ct.Success ? ct.Groups[1].Value.ToUpperInvariant() : "",
                 Level = Clamp(int.Parse(lv.Groups[1].Value, CultureInfo.InvariantCulture)),

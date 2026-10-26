@@ -12,7 +12,7 @@ public sealed class DeviceRow
     public Grid Root { get; }
     public StackPanel Mini { get; }
 
-    private readonly TextBlock _icon, _name, _status, _pct, _mIcon, _mPct;
+    private readonly TextBlock _icon, _name, _status, _pct, _bolt, _mIcon, _mPct, _mBolt;
     private readonly Border _fill, _mFill;
     private readonly ColumnDefinition _c1, _c2, _m1, _m2;
 
@@ -45,7 +45,11 @@ public sealed class DeviceRow
         Grid.SetColumn(texts, 1);
 
         _pct = new TextBlock { FontSize = 24, FontWeight = FontWeights.Bold, VerticalAlignment = VerticalAlignment.Center };
-        Grid.SetColumn(_pct, 2);
+        _bolt = Bolt(18, new Thickness(0, 0, 4, 0));
+        var pctPanel = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
+        pctPanel.Children.Add(_bolt);
+        pctPanel.Children.Add(_pct);
+        Grid.SetColumn(pctPanel, 2);
 
         // смужка заряду
         var track = MakeBar(6, 3, new Thickness(0, 8, 0, 0), out _fill, out _c1, out _c2);
@@ -54,7 +58,7 @@ public sealed class DeviceRow
 
         Root.Children.Add(_icon);
         Root.Children.Add(texts);
-        Root.Children.Add(_pct);
+        Root.Children.Add(pctPanel);
         Root.Children.Add(track);
 
         // міні-елемент для смужки
@@ -69,10 +73,19 @@ public sealed class DeviceRow
         var mTrack = MakeBar(4, 2, new Thickness(6, 1, 0, 0), out _mFill, out _m1, out _m2);
         mTrack.Width = 26;
         mTrack.VerticalAlignment = VerticalAlignment.Center;
+        _mBolt = Bolt(11, new Thickness(0, 0, 2, 0));
         Mini.Children.Add(_mIcon);
+        Mini.Children.Add(_mBolt);
         Mini.Children.Add(_mPct);
         Mini.Children.Add(mTrack);
     }
+
+    // блискавка «заряджається / на кабелі»
+    private static TextBlock Bolt(double size, Thickness margin) => new()
+    {
+        FontFamily = Glyphs.IconFont, FontSize = size, Text = Glyphs.Charging, Foreground = Palette.Brush(Palette.Green),
+        VerticalAlignment = VerticalAlignment.Center, Margin = margin, Visibility = Visibility.Collapsed,
+    };
 
     private static Border MakeBar(double height, double radius, Thickness margin, out Border fill, out ColumnDefinition c1, out ColumnDefinition c2)
     {
@@ -113,10 +126,11 @@ public sealed class DeviceRow
         _m1.Width = level;
         _m2.Width = rest;
         _mIcon.Opacity = opacity;
+        _bolt.Visibility = _mBolt.Visibility = state == PowerState.Charging ? Visibility.Visible : Visibility.Collapsed;
 
         _status.Text = state switch
         {
-            PowerState.Charging => "\u26A1 " + L.T("Заряджається", "Charging"),
+            PowerState.Charging => L.T("Заряджається", "Charging"),
             PowerState.Off => L.T("Вимкнено / сон · останнє значення", "Off / asleep · last known value"),
             _ => dev.Level <= 20 ? L.T("Низький заряд — підзаряди", "Low battery — charge it") : L.T("Працює від батареї", "On battery"),
         };

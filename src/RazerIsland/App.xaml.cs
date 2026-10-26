@@ -33,6 +33,7 @@ public partial class App : Application
     private List<RazerDevice> _wireless = [];
     private bool _wirelessBusy;
     private readonly HashSet<string> _loggedSources = [];
+    private readonly Dictionary<string, PowerState> _lastState = new();
 
     // мікрофон
     private bool _micMuted, _micKnown, _rawMute, _rawDeaf, _reportedError;
@@ -102,6 +103,7 @@ public partial class App : Application
         _noticeTimer.Tick += (_, _) =>
         {
             _noticeTimer.Stop();
+            StopGlow();
             Widget.NoticeActive = false;
             UpdateTopmost();
             if (UseIntegrated && !Widget.Expanded) Widget.ApplyVisual(false, true);
@@ -147,12 +149,20 @@ public partial class App : Application
 
         if (_refreshTick++ % 10 == 0) _ = RefreshWirelessAsync();
 
-        var present = new HashSet<string>();
-        foreach (var d in (data?.Devices ?? []).Concat(_wireless)) { _known[d.Serial] = d; present.Add(d.Serial); }
+        // показуємо лише активні: вимкнені, сплячі й відключені пристрої зникають, а з'явившись знову — повертаються
+        _known.Clear();
+        foreach (var d in (data?.Devices ?? []).Concat(_wireless))
+        {
+            // сповіщення лише про перехід на заряджання; пристрій, побачений уперше (запуск віджета), не сповіщає
+            if (d.State == PowerState.Charging && _lastState.TryGetValue(d.Serial, out var prev) && prev != PowerState.Charging)
+                ShowChargingNotice(d);
+            _lastState[d.Serial] = d.State;
+            if (d.State != PowerState.Off) _known[d.Serial] = d;
+        }
 
-        foreach (var d in _known.Values)
-            _tray.Update(d, present.Contains(d.Serial) ? d.State : PowerState.Off, Settings.TrayStyle);
-        Widget.ShowDevices(data, _known, present);
+        foreach (var d in _known.Values) _tray.Update(d, d.State, Settings.TrayStyle);
+        _tray.RemoveExcept(_known.Keys);
+        Widget.ShowDevices(data, _known);
         DevicesChanged?.Invoke();
     }
 
@@ -342,7 +352,10 @@ public partial class App : Application
     private void UpdateTopmost()
     {
         bool want = Settings.Topmost || (UseIntegrated && (_micMuted || Widget.NoticeActive));
-        if (Widget.Topmost != want) Widget.Topmost = want;
+        if (Widget.Topmost == want) return;
+        Widget.Topmost = want;
+        // зняття «поверх усіх» лишає вікно нагорі, доки не клацнеш деінде — опускаємо його під інші вікна
+        if (!want) Native.SendToBack(new System.Windows.Interop.WindowInteropHelper(Widget).Handle);
     }
 
     private void UpdateMicBadge() => Widget.SetMicOnly(_micMuted && _micKnown);
@@ -355,15 +368,32 @@ public partial class App : Application
         bool off = mute || deaf;
         var text = deaf ? L.T("Звук вимкнено", "Sound off") : mute ? L.T("Мікрофон вимкнено", "Microphone muted") : L.T("Мікрофон увімкнено", "Microphone on");
         var color = off ? Palette.Red : Palette.Green;
+        ShowNotice(text, color, size => Glyphs.MicIcon(off, size, color), glow: false);
+    }
+
+    private void ShowChargingNotice(RazerDevice d) =>
+        ShowNotice(L.T($"{d.Name} заряджається", $"{d.Name} is charging"), Palette.Green, Glyphs.ChargingIcon, glow: true);
+
+    /// <summary>Сповіщення в острівці (або в окремому острівці, якщо віджет у режимі картки чи схований) на ~2.6 с.</summary>
+    private void ShowNotice(string text, string color, Func<double, FrameworkElement> icon, bool glow)
+    {
         Widget.NoticeActive = true;
-        Widget.SetNotice(text, color, off);
-        _micWin.SetNotice(text, color, off);
+        Widget.SetNotice(text, color, icon(16));
+        _micWin.SetNotice(text, color, icon(15));
         UpdateMicBadge();
         UpdateTopmost();
         if (UseIntegrated && !Widget.Expanded) Widget.ApplyVisual(false, true);
         UpdateMicWindow();
+        StopGlow();
+        if (glow) EdgeGlow.Start(UseIntegrated ? Widget.CardBorder : _micWin.CardBorder, color);
         _noticeTimer.Stop();
         _noticeTimer.Start();
+    }
+
+    private void StopGlow()
+    {
+        EdgeGlow.Stop(Widget.CardBorder);
+        EdgeGlow.Stop(_micWin.CardBorder);
     }
 
     private void PollMic()

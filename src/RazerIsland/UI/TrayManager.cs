@@ -78,6 +78,20 @@ public sealed class TrayManager : IDisposable
         it.Icon.Text = tip.Length > 63 ? tip[..63] : tip;
     }
 
+    /// <summary>Прибрати іконки пристроїв, яких більше немає серед активних.</summary>
+    public void RemoveExcept(IEnumerable<string> keep)
+    {
+        var set = keep.ToHashSet();
+        foreach (var serial in _items.Keys.Where(k => !set.Contains(k)).ToList())
+        {
+            var it = _items[serial];
+            it.Icon.Visible = false;
+            it.Icon.Dispose();
+            if (it.Handle != IntPtr.Zero) Native.DestroyIcon(it.Handle);
+            _items.Remove(serial);
+        }
+    }
+
     private Item GetItem(string serial)
     {
         if (_items.TryGetValue(serial, out var it)) return it;

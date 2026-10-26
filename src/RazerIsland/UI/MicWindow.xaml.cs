@@ -24,12 +24,14 @@ public partial class MicWindow : Window
         };
     }
 
-    public void SetNotice(string text, string color, bool off)
+    public void SetNotice(string text, string color, FrameworkElement icon)
     {
         MText.Text = text;
         MText.Foreground = Palette.Brush(color);
-        MIconHost.Child = Glyphs.MicIcon(off, 15, color);
+        MIconHost.Child = icon;
     }
+
+    public System.Windows.Controls.Border CardBorder => MCard;
 
     /// <summary>Показати/сховати; без сповіщення — лише перекреслений мікрофон.</summary>
     public void Update(bool need, bool noticeActive)

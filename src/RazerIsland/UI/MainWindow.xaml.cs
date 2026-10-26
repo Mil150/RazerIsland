@@ -140,14 +140,19 @@ public partial class MainWindow : Window
 
     // ================== ПРИСТРОЇ ==================
 
-    public void ShowDevices(DeviceSnapshot? data, IReadOnlyDictionary<string, RazerDevice> known, IReadOnlySet<string> present)
+    public void ShowDevices(DeviceSnapshot? data, IReadOnlyDictionary<string, RazerDevice> known)
     {
         Updated.Text = data is { Devices.Count: > 0 } && data.Time > DateTime.MinValue
             ? L.T("дані Synapse о ", "Synapse data at ") + data.Time.ToString("HH:mm") : "";
-        Hint.Text = L.T("Немає даних про пристрої. Переконайся, що Razer Synapse запущений або Bluetooth-пристрої підключені.",
-                        "No device data. Make sure Razer Synapse is running or Bluetooth devices are connected.");
-        Hint.Visibility = present.Count > 0 ? Visibility.Collapsed : Visibility.Visible;
+        Hint.Text = L.T("Немає активних пристроїв. Увімкни пристрій і переконайся, що Razer Synapse запущений або пристрій підключено через Bluetooth.",
+                        "No active devices. Turn a device on and make sure Razer Synapse is running or the device is connected via Bluetooth.");
+        Hint.Visibility = known.Count > 0 ? Visibility.Collapsed : Visibility.Visible;
 
+        foreach (var serial in _rows.Keys.Where(k => !known.ContainsKey(k)).ToList())
+        {
+            Rows.Children.Remove(_rows[serial].Root);
+            _rows.Remove(serial);
+        }
         foreach (var (serial, d) in known)
         {
             if (!_rows.TryGetValue(serial, out var row))
@@ -155,7 +160,7 @@ public partial class MainWindow : Window
                 _rows[serial] = row = new DeviceRow(d);
                 Rows.Children.Add(row.Root);
             }
-            row.Update(d, present.Contains(serial));
+            row.Update(d, true);
         }
 
         // розкласти міні-елементи смужки: мишка зліва від годинника, навушники справа
@@ -446,10 +451,12 @@ public partial class MainWindow : Window
         SyncLayout();
     }
 
-    public void SetNotice(string text, string color, bool off)
+    public void SetNotice(string text, string color, FrameworkElement icon)
     {
         NoticeText.Text = text;
         NoticeText.Foreground = Palette.Brush(color);
-        NoticeIconHost.Child = Glyphs.MicIcon(off, 16, color);
+        NoticeIconHost.Child = icon;
     }
+
+    public Border CardBorder => Card;
 }

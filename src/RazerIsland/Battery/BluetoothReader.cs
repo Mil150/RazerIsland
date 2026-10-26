@@ -41,7 +41,8 @@ public static class BluetoothReader
             [BatteryKey, AddressKey, VidSourceKey, VidKey, ClassKey], DeviceInformationKind.Device);
         foreach (var n in nodes)
         {
-            if (n.Properties.GetValueOrDefault(BatteryKey) is not byte level) continue;
+            // 0 % — пристрій не повідомив заряд (розряджений просто не був би підключений)
+            if (n.Properties.GetValueOrDefault(BatteryKey) is not byte level || level == 0) continue;
             if (n.Properties.GetValueOrDefault(AddressKey) is not string addr || !connected.TryGetValue(addr.ToUpperInvariant(), out var name)) continue;
             if (result.Any(r => r.Serial == "bt:" + addr)) continue;
             var cod = n.Properties.GetValueOrDefault(ClassKey) as uint? ?? 0;

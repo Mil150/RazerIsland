@@ -12,6 +12,7 @@ public static class Glyphs
     public static readonly FontFamily IconFont = new("Segoe Fluent Icons, Segoe MDL2 Assets");
 
     public const string Pin = "\uE718";
+    public const string Charging = "\uE945";
     public const string MicChar = "\uE720";
 
     public static string ForCategory(string category)
@@ -23,6 +24,12 @@ public static class Glyphs
         if (category.Contains("PHONE")) return "\uE8EA";
         return "\uE83F";
     }
+
+    public static FrameworkElement ChargingIcon(double size) => new TextBlock
+    {
+        FontFamily = IconFont, FontSize = size, Text = Charging, Foreground = Palette.Brush(Palette.Green),
+        VerticalAlignment = VerticalAlignment.Center,
+    };
 
     /// <summary>Значок мікрофона (перекреслений, якщо вимкнено).</summary>
     public static FrameworkElement MicIcon(bool off, double size, string color)
