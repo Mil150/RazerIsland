@@ -13,7 +13,7 @@
     <AssemblyName>RazerIsland</AssemblyName>
     <ApplicationIcon>Assets\app.ico</ApplicationIcon>
 
-    <Version>0.2.3</Version>
+    <Version>0.2.4</Version>
     <Product>Razer Island</Product>
     <Description>Заряд Razer, годинник, погода, розклад і мікрофон Discord</Description>
     <Copyright>© 2026 Mil150</Copyright>
