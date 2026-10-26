@@ -2,9 +2,27 @@
 
 **English** · [Українська](README.uk.md)
 
-![Razer Island — expanded card](docs/screenshot.png)
+![Razer Island](docs/preview.png)
 
 A Dynamic Island–style widget for Windows. A small island at the top of the screen shows the battery of your wireless devices, the time, the weather, your next calendar events and your Discord microphone state. Hover over it to expand it, or switch to a floating card that is always open.
+
+### In action
+
+**Hover to peek and expand** — a short hover pops the island out over other windows, a longer one expands it; the active window stays active.
+
+![Hover: the island peeks out and expands](docs/hover.gif)
+
+**Discord microphone** — muting shows a notice on top of all windows and keeps a red mic badge until you unmute.
+
+![Discord microphone notifications](docs/mic.gif)
+
+**Charging** — plug in a cable and the island tells you within ~2 seconds, with a light running along its edges.
+
+![Charging notification](docs/charging.gif)
+
+**Settings** — one dark style, Ukrainian / English, per-calendar colours.
+
+![Settings window](docs/settings.gif)
 
 ## Features
 

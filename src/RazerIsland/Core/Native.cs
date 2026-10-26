@@ -67,9 +67,24 @@ internal static partial class Native
     [return: MarshalAs(UnmanagedType.Bool)]
     private static partial bool SetWindowPos(IntPtr hwnd, IntPtr after, int x, int y, int cx, int cy, uint flags);
 
-    /// <summary>Опустити вікно під усі інші (без активації, розмір і місце не змінюються).</summary>
-    public static void SendToBack(IntPtr hwnd) =>
-        SetWindowPos(hwnd, new IntPtr(1) /* HWND_BOTTOM */, 0, 0, 0, 0, 0x0001 | 0x0002 | 0x0010 /* NOSIZE | NOMOVE | NOACTIVATE */);
+    [LibraryImport("user32.dll")]
+    private static partial IntPtr GetWindow(IntPtr hwnd, uint cmd);
+
+    [LibraryImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool IsWindowVisible(IntPtr hwnd);
+
+    /// <summary>Найближче видиме вікно над нашим у z-порядку; Zero — над нами лише вікна «поверх усіх» (ми згори).</summary>
+    public static IntPtr WindowAbove(IntPtr hwnd)
+    {
+        var prev = GetWindow(hwnd, 3 /* GW_HWNDPREV */);
+        while (prev != IntPtr.Zero && !IsWindowVisible(prev)) prev = GetWindow(prev, 3);
+        return prev == IntPtr.Zero || (GetLong(prev, GWL_EXSTYLE) & 0x8 /* WS_EX_TOPMOST */) != 0 ? IntPtr.Zero : prev;
+    }
+
+    /// <summary>Поставити вікно одразу під <paramref name="above"/> (без активації, розмір і місце не змінюються).</summary>
+    public static void PlaceBelow(IntPtr hwnd, IntPtr above) =>
+        SetWindowPos(hwnd, above, 0, 0, 0, 0, 0x0001 | 0x0002 | 0x0010 /* NOSIZE | NOMOVE | NOACTIVATE */);
 
     [LibraryImport("dwmapi.dll")]
     private static partial int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref int value, int size);

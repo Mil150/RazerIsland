@@ -390,10 +390,15 @@ public partial class App : Application
     {
         bool want = Settings.Topmost || (UseIntegrated && (_micMuted || Widget.NoticeActive || Widget.Peeking));
         if (Widget.Topmost == want) return;
+        var hwnd = new System.Windows.Interop.WindowInteropHelper(Widget).Handle;
+        // після сповіщення / наведення повертаємо вікно на те місце в z-порядку, де воно було:
+        // зняття «поверх усіх» інакше лишає його над усіма вікнами
+        if (want) _windowAbove = Native.WindowAbove(hwnd);
         Widget.Topmost = want;
-        // зняття «поверх усіх» лишає вікно нагорі, доки не клацнеш деінде — опускаємо його під інші вікна
-        if (!want) Native.SendToBack(new System.Windows.Interop.WindowInteropHelper(Widget).Handle);
+        if (!want && _windowAbove != IntPtr.Zero && Native.IsWindow(_windowAbove)) Native.PlaceBelow(hwnd, _windowAbove);
     }
+
+    private IntPtr _windowAbove;
 
     private void UpdateMicBadge() => Widget.SetMicOnly(_micMuted && _micKnown);
 
