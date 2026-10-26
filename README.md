@@ -20,10 +20,6 @@ A Dynamic Island–style widget for Windows. A small island at the top of the sc
 
 ![Charging notification](docs/charging.gif)
 
-**Settings** — one dark style, Ukrainian / English, per-calendar colours.
-
-![Settings window](docs/settings.gif)
-
 ## Features
 
 - **Battery levels** in the island, the expanded card and as tray icons (one per device, percentage or device icon):
