@@ -12,6 +12,15 @@ public static class Palette
     public const string Gray = "#6B7078";
     public const string Accent = "#4C8DFF";
 
+    /// <summary>Кольори календарів, як у Google Календарі.</summary>
+    public static readonly (string Hex, string Uk, string En)[] CalendarColors =
+    [
+        ("#D50000", "Томат", "Tomato"), ("#E67C73", "Фламінго", "Flamingo"), ("#F4511E", "Мандарин", "Tangerine"),
+        ("#F6BF26", "Банан", "Banana"), ("#33B679", "Шавлія", "Sage"), ("#0B8043", "Базилік", "Basil"),
+        ("#039BE5", "Павич", "Peacock"), ("#3F51B5", "Чорниця", "Blueberry"), ("#7986CB", "Лаванда", "Lavender"),
+        ("#8E24AA", "Виноград", "Grape"), ("#616161", "Графіт", "Graphite"),
+    ];
+
     private static readonly Dictionary<string, SolidColorBrush> Cache = new(StringComparer.OrdinalIgnoreCase);
 
     public static SolidColorBrush Brush(string hex)

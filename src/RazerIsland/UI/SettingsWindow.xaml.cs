@@ -79,6 +79,7 @@ public partial class SettingsWindow : Window
         {
             if (!SaveCalendar()) _app.Calendar.Reload();
             UpdateCalStatus();
+            BuildCalColors();
         };
 
         BtnDiscord.Click += (_, _) =>
@@ -114,6 +115,7 @@ public partial class SettingsWindow : Window
         _statusTimer.Start();
         _app.DevicesChanged += () => { if (IsVisible && _page == 1) UpdateBatteryStatus(); };
         _app.SettingsChanged += () => { if (IsVisible) LoadBehavior(); };
+        _app.Calendar.Changed += () => { if (IsVisible) BuildCalColors(); };
     }
 
     // закриття вікна = сховати (у майстрі — вважати, що налаштування завершено)
@@ -197,6 +199,7 @@ public partial class SettingsWindow : Window
             UpdateBatteryStatus();
             UpdateSysInfo();
             UpdateCalStatus();
+            BuildCalColors();
         }
         finally { _loading = false; }
     }
@@ -258,6 +261,42 @@ public partial class SettingsWindow : Window
     }
 
     private bool SaveCalendar() => _app.Calendar.SaveUrls(TbCal.Text.Split('\n'));
+
+    // рядок кольорів для кожного календаря; назва — з самого календаря, коли він завантажиться
+    private void BuildCalColors()
+    {
+        CalColors.Children.Clear();
+        var urls = CalendarService.GetUrls();
+        CalColorsTitle.Visibility = CalColorsHint.Visibility = urls.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+        for (int i = 0; i < urls.Count; i++)
+        {
+            var url = urls[i];
+            var current = S.CalendarColors.GetValueOrDefault(url, Palette.Accent);
+            var name = _app.Calendar.Names.GetValueOrDefault(url) ?? $"{L.T("Календар", "Calendar")} {i + 1}";
+            var row = new StackPanel { Margin = new Thickness(0, 10, 0, 0) };
+            row.Children.Add(new TextBlock { Text = name, Foreground = Palette.Brush("#E6E8EB"), Margin = new Thickness(0, 0, 0, 6) });
+            var swatches = new WrapPanel();
+            foreach (var (hex, uk, en) in Palette.CalendarColors)
+            {
+                var b = new Button
+                {
+                    Style = (Style)FindResource("Swatch"), Background = Palette.Brush(hex), ToolTip = L.T(uk, en),
+                    Tag = string.Equals(hex, current, StringComparison.OrdinalIgnoreCase) ? "sel" : null,
+                };
+                System.Windows.Automation.AutomationProperties.SetName(b, $"{name}: {L.T(uk, en)}");
+                b.Click += (_, _) =>
+                {
+                    S.CalendarColors[url] = hex;
+                    S.Save();
+                    _app.Widget.RenderCalendar();
+                    BuildCalColors();
+                };
+                swatches.Children.Add(b);
+            }
+            row.Children.Add(swatches);
+            CalColors.Children.Add(row);
+        }
+    }
 
     private void SaveCalendarQuietly()
     {

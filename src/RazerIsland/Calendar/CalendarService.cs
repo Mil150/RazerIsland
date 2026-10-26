@@ -10,6 +10,8 @@ public sealed class CalendarService
     private readonly Dictionary<string, List<CalendarEvent>> _data = new();
 
     public bool LastError { get; private set; }
+    /// <summary>Назва календаря (X-WR-CALNAME) за посиланням.</summary>
+    public Dictionary<string, string> Names { get; } = new();
     public int LoadedCount => _data.Count;
     public IEnumerable<CalendarEvent> AllEvents => _data.Values.SelectMany(v => v);
 
@@ -61,7 +63,10 @@ public sealed class CalendarService
             var ics = await Http.Client.GetStringAsync(url);
             var from = DateTime.Today;
             var events = await Task.Run(() => IcsParser.Parse(ics, from, from.AddDays(8)));
-            _data[url] = events;
+            _data[url] = events.Select(e => e with { Calendar = url }).ToList();
+            // назва календаря, як у Google (iCal не передає кольорів — їх задають у налаштуваннях)
+            var name = System.Text.RegularExpressions.Regex.Match(ics, @"^X-WR-CALNAME:(.+?)\r?$", System.Text.RegularExpressions.RegexOptions.Multiline);
+            if (name.Success) Names[url] = name.Groups[1].Value.Trim();
             LastError = false;
         }
         catch (Exception e)

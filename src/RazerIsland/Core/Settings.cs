@@ -32,6 +32,8 @@ public sealed class Settings
     public bool FirstRunDone { get; set; }
     public bool DesktopShortcut { get; set; }
     public bool? V2 { get; set; }
+    /// <summary>Колір подій для кожного iCal-посилання (#RRGGBB).</summary>
+    public Dictionary<string, string> CalendarColors { get; set; } = new();
     /// <summary>"uk" або "en".</summary>
     public string? Language { get; set; }
 
@@ -57,6 +59,7 @@ public sealed class Settings
         s.Mode ??= "strip";
         s.TrayStyle ??= "icon";
         s.WeatherCity ??= "";
+        s.CalendarColors ??= new();
         s.DiscordClientId ??= ""; s.DiscordClientSecret ??= ""; s.DiscordToken ??= ""; s.DiscordRefresh ??= "";
         // v2: за замовчуванням не поверх вікон
         if (s.V2 is null) { s.Topmost = false; s.V2 = true; }

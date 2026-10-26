@@ -146,6 +146,28 @@
       <Setter Property="Padding" Value="14,12"/>
       <Setter Property="Margin" Value="0,6,0,0"/>
     </Style>
+    <!-- кружечок кольору календаря: обведений, коли вибраний (Tag="sel") або у фокусі клавіатури -->
+    <Style x:Key="Swatch" TargetType="Button">
+      <Setter Property="Width" Value="24"/>
+      <Setter Property="Height" Value="24"/>
+      <Setter Property="Margin" Value="0,0,8,0"/>
+      <Setter Property="Cursor" Value="Hand"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="Button">
+            <Grid>
+              <Ellipse x:Name="ring" Stroke="#F2F3F5" StrokeThickness="2" Visibility="Collapsed"/>
+              <Ellipse x:Name="dot" Margin="4" Fill="{TemplateBinding Background}"/>
+            </Grid>
+            <ControlTemplate.Triggers>
+              <Trigger Property="Tag" Value="sel"><Setter TargetName="ring" Property="Visibility" Value="Visible"/></Trigger>
+              <Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="ring" Property="Visibility" Value="Visible"/></Trigger>
+              <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="dot" Property="Margin" Value="2"/></Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
     <!-- повзунок: темна доріжка, зелена заповнена частина, світлий кружечок -->
     <Style x:Key="SliderPart" TargetType="RepeatButton">
       <Setter Property="OverridesDefaultStyle" Value="True"/>
@@ -393,6 +415,9 @@
               <Button x:Name="BtnCalTest" Content="{l:Tr 'Зберегти й перевірити', 'Save and test'}"/>
             </StackPanel>
             <TextBlock x:Name="CalStatus" Margin="0,10,0,0" Foreground="#8A8F98"/>
+            <TextBlock x:Name="CalColorsTitle" Style="{StaticResource H2}" Text="{l:Tr 'КОЛІР ПОДІЙ', 'EVENT COLOUR'}"/>
+            <TextBlock x:Name="CalColorsHint" Foreground="#8A8F98" FontSize="12" Text="{l:Tr 'Google не передає кольори подій через iCal-посилання, тож колір задається для кожного календаря.', 'Google does not share event colours through the iCal link, so a colour is set per calendar.'}"/>
+            <StackPanel x:Name="CalColors"/>
             <TextBlock Margin="0,10,0,0" Foreground="#FFB347" FontSize="12" Text="{l:Tr 'Нікому не показуй це посилання — за ним видно весь календар. Воно зберігається тільки на цьому комп’ютері.', 'Do not share this link — anyone with it can see your whole calendar. It is stored only on this computer.'}"/>
           </StackPanel>
 

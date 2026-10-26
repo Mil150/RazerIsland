@@ -25,8 +25,9 @@ public partial class MainWindow : Window
     private readonly App _app;
     private readonly QuarticEase _ease = new() { EasingMode = EasingMode.EaseOut };
     private readonly Dictionary<string, DeviceRow> _rows = new();
-    private readonly DispatcherTimer _hoverTimer = new();
-    private bool _hoverTarget;
+    private readonly DispatcherTimer _pointerTimer = new() { Interval = TimeSpan.FromMilliseconds(100) };
+    private bool _pointerInside;
+    private DateTime? _pointerSince;
     private string _lastTargets = "";
     private double _lastBatH = -1;
     private int _lastMinute = -1;
@@ -62,11 +63,9 @@ public partial class MainWindow : Window
         WHide.Click += (_, _) => _app.ToggleWidget();
         WExit.Click += (_, _) => _app.ExitApp();
 
-        // наведення мишки (з невеликою затримкою, щоб не смикалось)
-        _hoverTimer.Tick += OnHoverTick;
-        Card.MouseEnter += (_, _) => StartHover(true, 120);
-        Card.MouseLeave += (_, _) => StartHover(false, 450);
-        Ctx.Closed += (_, _) => { if (!Card.IsMouseOver) StartHover(false, 300); };
+        // наведення: позицію курсора перевіряємо самі — коли острівець під іншим вікном, події миші отримує те вікно
+        _pointerTimer.Tick += OnPointerTick;
+        _pointerTimer.Start();
     }
 
     // не показувати в Alt+Tab і не ховатися при «Згорнути все» (Win+D)
@@ -79,9 +78,17 @@ public partial class MainWindow : Window
             Native.SetLong(h, Native.GWL_EXSTYLE, (ex | Native.WS_EX_TOOLWINDOW) & ~Native.WS_EX_APPWINDOW);
             var pm = Native.FindWindow("Progman", null);
             if (pm != IntPtr.Zero) Native.SetLong(h, Native.GWL_HWNDPARENT, pm.ToInt64());
+            HwndSource.FromHwnd(h)?.AddHook((IntPtr _, int msg, IntPtr _, IntPtr _, ref bool _) =>
+            {
+                if (msg == 0x0219) DeviceTreeChanged?.Invoke(); // WM_DEVICECHANGE
+                return IntPtr.Zero;
+            });
         }
         catch { }
     }
+
+    /// <summary>Windows повідомила, що набір пристроїв змінився (підключили / від'єднали щось).</summary>
+    public event Action? DeviceTreeChanged;
 
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
@@ -283,24 +290,52 @@ public partial class MainWindow : Window
         if ($"{Expanded}|{isNotice}|{dH}|{w}" != _lastTargets) ApplyVisual(Expanded, true);
     }
 
-    private void StartHover(bool want, int delayMs)
+    // коротке наведення — острівець вилазить поверх вікон (без фокусу), довше — розкривається
+    private static readonly TimeSpan PeekDelay = TimeSpan.FromMilliseconds(100);
+    private static readonly TimeSpan ExpandDelay = TimeSpan.FromMilliseconds(600);
+    private static readonly TimeSpan LeaveDelay = TimeSpan.FromMilliseconds(450);
+
+    private void OnPointerTick(object? sender, EventArgs e)
     {
-        _hoverTarget = want;
-        _hoverTimer.Stop();
-        _hoverTimer.Interval = TimeSpan.FromMilliseconds(delayMs);
-        _hoverTimer.Start();
+        if (!S.IsIsland || !IsVisible) { _pointerSince = null; SetPeek(false); return; }
+        bool inside = Ctx.IsOpen || IsCardMouseOver;
+        var now = DateTime.Now;
+        if (inside != _pointerInside) { _pointerInside = inside; _pointerSince = now; }
+        var held = now - (_pointerSince ?? now);
+        if (inside)
+        {
+            if (held >= PeekDelay) SetPeek(true);
+            if (held >= ExpandDelay && !Expanded) ApplyVisual(true, true);
+        }
+        else if (held >= LeaveDelay)
+        {
+            if (Expanded) ApplyVisual(false, true);
+            SetPeek(false);
+        }
     }
 
-    private void OnHoverTick(object? sender, EventArgs e)
+    private void SetPeek(bool on)
     {
-        _hoverTimer.Stop();
-        if (!S.IsIsland) return;
-        bool want = _hoverTarget;
-        if (!want && (Card.IsMouseOver || Ctx.IsOpen)) return;
-        if (want != Expanded) ApplyVisual(want, true);
+        if (Peeking == on) return;
+        Peeking = on;
+        PeekChanged?.Invoke();
     }
 
-    public bool IsCardMouseOver => Card.IsMouseOver;
+    /// <summary>Острівець тимчасово поверх вікон, бо на нього навели мишку.</summary>
+    public bool Peeking { get; private set; }
+    public event Action? PeekChanged;
+
+    /// <summary>Курсор над карткою — за екранними координатами, тож працює й коли острівець перекритий іншим вікном.</summary>
+    public bool IsCardMouseOver
+    {
+        get
+        {
+            if (!Card.IsVisible || !Native.GetCursorPos(out var p)) return false;
+            var a = Card.PointToScreen(new Point(0, 0));
+            var b = Card.PointToScreen(new Point(Card.ActualWidth, Card.ActualHeight));
+            return p.X >= a.X && p.X < b.X && p.Y >= Math.Min(a.Y, 0) && p.Y < b.Y;
+        }
+    }
 
     // ================== ГОДИННИК І ПОГОДА ==================
 
@@ -381,19 +416,20 @@ public partial class MainWindow : Window
                     Margin = new Thickness(0, 6, 0, 2),
                 });
             }
-            CalRows.Children.Add(MakeEventRow(ev, now));
+            CalRows.Children.Add(MakeEventRow(ev, now, S.CalendarColors.GetValueOrDefault(ev.Calendar, Palette.Accent)));
         }
         FitCalendar();
         SyncLayout();
     }
 
-    private static Grid MakeEventRow(CalendarEvent ev, DateTime now)
+    private static Grid MakeEventRow(CalendarEvent ev, DateTime now, string color)
     {
         bool isNow = !ev.AllDay && ev.Start <= now && ev.End > now;
         var g = new Grid { Margin = new Thickness(0, 3, 0, 3) };
         g.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(3) });
         g.ColumnDefinitions.Add(new ColumnDefinition());
-        g.Children.Add(new Border { CornerRadius = new CornerRadius(1.5), Background = Palette.Brush(isNow ? Palette.Green : Palette.Accent) });
+        // смужка — колір календаря; подію «зараз» позначає зелений текст під назвою
+        g.Children.Add(new Border { CornerRadius = new CornerRadius(1.5), Background = Palette.Brush(color) });
 
         var time = ev.AllDay ? L.T("Увесь день", "All day") : $"{ev.Start:HH:mm}–{ev.End:HH:mm}";
         if (isNow) time = L.T("Зараз · до ", "Now · until ") + ev.End.ToString("HH:mm");

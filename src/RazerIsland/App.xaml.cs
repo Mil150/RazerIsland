@@ -34,6 +34,11 @@ public partial class App : Application
     private bool _wirelessBusy;
     private readonly HashSet<string> _loggedSources = [];
     private readonly Dictionary<string, PowerState> _lastState = new();
+    // пристрої, щойно підключені кабелем: ключ — Serial, значення — коли й через який USB-вузол
+    private readonly Dictionary<string, (DateTime At, string UsbId)> _cabled = new();
+    private static readonly TimeSpan CableGrace = TimeSpan.FromSeconds(90);
+    private UsbCableWatcher? _cable;
+    private IntPtr _focusBeforeNotice;
 
     // мікрофон
     private bool _micMuted, _micKnown, _rawMute, _rawDeaf, _reportedError;
@@ -77,10 +82,19 @@ public partial class App : Application
         System.Windows.Forms.Application.EnableVisualStyles();
 
         Widget = new MainWindow(this);
+        Widget.PeekChanged += UpdateTopmost;
         _micWin = new MicWindow();
         _tray = new TrayManager(() => OpenSettings(2), ToggleWidget, () => ExitApp());
         _discord = new DiscordMicService(Settings);
         _discord.Start();
+        try
+        {
+            _cable = new UsbCableWatcher();
+            _cable.Connected += OnCableConnected;
+            _cable.Disconnected += OnCableDisconnected;
+            Widget.DeviceTreeChanged += _cable.Check;
+        }
+        catch (Exception ex) { Log.Write("Стеження за USB: " + ex.Message); }
 
         if (!AppInfo.IsCustomDataDir)
         {
@@ -108,6 +122,7 @@ public partial class App : Application
             UpdateTopmost();
             if (UseIntegrated && !Widget.Expanded) Widget.ApplyVisual(false, true);
             UpdateMicWindow();
+            RestoreFocusAfterNotice();
         };
 
         Widget.SyncMenu();
@@ -151,8 +166,10 @@ public partial class App : Application
 
         // показуємо лише активні: вимкнені, сплячі й відключені пристрої зникають, а з'явившись знову — повертаються
         _known.Clear();
-        foreach (var d in (data?.Devices ?? []).Concat(_wireless))
+        foreach (var raw in (data?.Devices ?? []).Concat(_wireless))
         {
+            // поки Synapse не записав «Charging» (≈30 с після підключення кабелю), вірити кабелю
+            var d = _cabled.ContainsKey(raw.Serial) && DateTime.Now - _cabled[raw.Serial].At < CableGrace ? raw with { State = PowerState.Charging } : raw;
             // сповіщення лише про перехід на заряджання; пристрій, побачений уперше (запуск віджета), не сповіщає
             if (d.State == PowerState.Charging && _lastState.TryGetValue(d.Serial, out var prev) && prev != PowerState.Charging)
                 ShowChargingNotice(d);
@@ -164,6 +181,26 @@ public partial class App : Application
         _tray.RemoveExcept(_known.Keys);
         Widget.ShowDevices(data, _known);
         DevicesChanged?.Invoke();
+    }
+
+    // кабель підключили до вже активного бездротового пристрою Razer — сповіщаємо одразу, не чекаючи Synapse.
+    // Сам приймач теж з'являється як USB-пристрій Razer, але тоді пристрій ще не активний — збігу немає.
+    private void OnCableConnected(string usbId, string usbName)
+    {
+        var d = _known.Values.FirstOrDefault(k => k.Brand == "Razer" && usbName.Contains(k.Name, StringComparison.OrdinalIgnoreCase));
+        // один кабель дає кілька USB-вузлів з тією ж назвою — реагуємо на перший
+        if (d is null || (_cabled.TryGetValue(d.Serial, out var c) && DateTime.Now - c.At < CableGrace)) return;
+        _cabled[d.Serial] = (DateTime.Now, usbId);
+        RefreshAll();
+    }
+
+    private void OnCableDisconnected(string usbId)
+    {
+        foreach (var serial in _cabled.Where(c => c.Value.UsbId == usbId).Select(c => c.Key).ToList())
+        {
+            _cabled.Remove(serial);
+            RefreshAll();
+        }
     }
 
     // Bluetooth, Logitech, SteelSeries, Corsair: заряд змінюється повільно, тож досить кожні 30 с і у фоні
@@ -351,7 +388,7 @@ public partial class App : Application
 
     private void UpdateTopmost()
     {
-        bool want = Settings.Topmost || (UseIntegrated && (_micMuted || Widget.NoticeActive));
+        bool want = Settings.Topmost || (UseIntegrated && (_micMuted || Widget.NoticeActive || Widget.Peeking));
         if (Widget.Topmost == want) return;
         Widget.Topmost = want;
         // зняття «поверх усіх» лишає вікно нагорі, доки не клацнеш деінде — опускаємо його під інші вікна
@@ -377,6 +414,7 @@ public partial class App : Application
     /// <summary>Сповіщення в острівці (або в окремому острівці, якщо віджет у режимі картки чи схований) на ~2.6 с.</summary>
     private void ShowNotice(string text, string color, Func<double, FrameworkElement> icon, bool glow)
     {
+        if (!Widget.NoticeActive) _focusBeforeNotice = Native.GetForegroundWindow();
         Widget.NoticeActive = true;
         Widget.SetNotice(text, color, icon(16));
         _micWin.SetNotice(text, color, icon(15));
@@ -388,6 +426,18 @@ public partial class App : Application
         if (glow) EdgeGlow.Start(UseIntegrated ? Widget.CardBorder : _micWin.CardBorder, color);
         _noticeTimer.Stop();
         _noticeTimer.Start();
+    }
+
+    // інколи після сповіщення активне вікно втрачало фокус (причину не відтворено) —
+    // повертаємо його, якщо фокус опинився у віджета чи «ніде», і записуємо, куди він пішов
+    private void RestoreFocusAfterNotice()
+    {
+        var before = _focusBeforeNotice;
+        _focusBeforeNotice = IntPtr.Zero;
+        var now = Native.GetForegroundWindow();
+        if (before == IntPtr.Zero || now == before || !Native.IsWindow(before) || !Native.IsLostFocus(now)) return;
+        Log.Write($"Фокус після сповіщення перейшов до «{Native.ClassName(now)}» — повертаю попередньому вікну «{Native.ClassName(before)}».");
+        Native.SetForegroundWindow(before);
     }
 
     private void StopGlow()
