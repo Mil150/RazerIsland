@@ -110,7 +110,7 @@ public partial class SettingsWindow : Window
         _statusTimer.Tick += (_, _) =>
         {
             if (!IsVisible) return;
-            DiscordStatus.Text = DiscordStatusText();
+            ShowDiscordStatus();
             if (_page == 4) UpdateCalStatus();
         };
         _statusTimer.Start();
@@ -194,7 +194,7 @@ public partial class SettingsWindow : Window
             TbCal.Text = string.Join("\r\n", CalendarService.GetUrls());
             TbDiscordId.Text = S.DiscordClientId;
             PbDiscordSecret.Password = S.DiscordClientSecret;
-            DiscordStatus.Text = DiscordStatusText();
+            ShowDiscordStatus();
             CbAuto.IsChecked = Autostart.IsEnabled;
             CbDesktop.IsChecked = Shortcuts.DesktopExists;
             UpdateBatteryStatus();
@@ -235,6 +235,16 @@ public partial class SettingsWindow : Window
         }
     }
 
+    // жовте попередження, якщо збережені секрети не розшифрувалися й Discord ще не підключено знову
+    private void ShowDiscordStatus()
+    {
+        bool locked = S.SecretsLocked && _app.DiscordState.Status != "ok";
+        DiscordStatus.Text = locked
+            ? L.T("Збережені дані не вдалося розшифрувати — увійдіть у Discord знову", "Saved data could not be decrypted — sign in to Discord again")
+            : DiscordStatusText();
+        DiscordStatus.Foreground = Palette.Brush(locked ? Palette.Yellow : "#8A8F98");
+    }
+
     private string DiscordStatusText()
     {
         var s = _app.DiscordState;
@@ -273,7 +283,7 @@ public partial class SettingsWindow : Window
         for (int i = 0; i < urls.Count; i++)
         {
             var url = urls[i];
-            var current = S.CalendarColors.GetValueOrDefault(url, Palette.Accent);
+            var current = S.CalendarColors.GetValueOrDefault(Settings.ColorKey(url), Palette.Accent);
             var src = sources.FirstOrDefault(s => s.Url == url);
             var name = src?.Name ?? $"{L.T("Календар", "Calendar")} {i + 1}";
             var row = new StackPanel { Margin = new Thickness(0, 10, 0, 0) };
@@ -296,7 +306,7 @@ public partial class SettingsWindow : Window
                 System.Windows.Automation.AutomationProperties.SetName(b, $"{name}: {L.T(uk, en)}");
                 b.Click += (_, _) =>
                 {
-                    S.CalendarColors[url] = hex;
+                    S.CalendarColors[Settings.ColorKey(url)] = hex;
                     S.Save();
                     _app.Widget.RenderCalendar();
                     BuildCalColors();
@@ -318,6 +328,12 @@ public partial class SettingsWindow : Window
     {
         var urls = CalendarService.GetUrls();
         var cal = _app.Calendar;
+        if (CalendarService.CalendarsLocked)
+        {
+            CalStatus.Text = L.T("Збережені посилання не вдалося розшифрувати — вставте посилання знову", "Saved links could not be decrypted — paste the links again");
+            CalStatus.Foreground = Palette.Brush(Palette.Yellow);
+            return;
+        }
         if (urls.Count == 0)
         {
             CalStatus.Text = L.T("Календар ще не підключено.", "No calendar connected yet.");

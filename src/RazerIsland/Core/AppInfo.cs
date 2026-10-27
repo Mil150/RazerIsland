@@ -23,7 +23,9 @@ public static class AppInfo
     public static bool IsCustomDataDir { get; } = !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("RAZER_ISLAND_HOME"));
 
     public static string SettingsPath => Path.Combine(DataDir, "settings.json");
-    public static string CalendarsPath => Path.Combine(DataDir, "calendars.txt");
+    public static string CalendarsPath => Path.Combine(DataDir, "calendars.dat");
+    /// <summary>Відкритий список посилань до 0.2.6 (і з PowerShell-версії); переноситься в calendars.dat.</summary>
+    public static string LegacyCalendarsPath => Path.Combine(DataDir, "calendars.txt");
     public static string LogPath => Path.Combine(DataDir, "error.log");
 
     public static string SynapseLogDir { get; } =

@@ -419,7 +419,7 @@ public partial class MainWindow : Window
                     Margin = new Thickness(0, 6, 0, 2),
                 });
             }
-            CalRows.Children.Add(MakeEventRow(ev, now, S.CalendarColors.GetValueOrDefault(ev.Calendar, Palette.Accent)));
+            CalRows.Children.Add(MakeEventRow(ev, now, S.CalendarColors.GetValueOrDefault(Settings.ColorKey(ev.Calendar), Palette.Accent)));
         }
         FitCalendar(warning);
         SyncLayout();
