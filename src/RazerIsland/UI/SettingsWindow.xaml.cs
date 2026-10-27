@@ -77,7 +77,8 @@ public partial class SettingsWindow : Window
 
         BtnCalTest.Click += (_, _) =>
         {
-            if (!SaveCalendar()) _app.Calendar.Reload();
+            // Refresh, а не Reload: кеш лишається, а календар, що вже вантажиться, не запускається вдруге
+            if (!SaveCalendar()) _app.Calendar.Refresh();
             UpdateCalStatus();
             BuildCalColors();
         };
@@ -115,7 +116,7 @@ public partial class SettingsWindow : Window
         _statusTimer.Start();
         _app.DevicesChanged += () => { if (IsVisible && _page == 1) UpdateBatteryStatus(); };
         _app.SettingsChanged += () => { if (IsVisible) LoadBehavior(); };
-        _app.Calendar.Changed += () => { if (IsVisible) BuildCalColors(); };
+        _app.Calendar.Changed += () => { if (IsVisible) { BuildCalColors(); if (_page == 4) UpdateCalStatus(); } };
     }
 
     // закриття вікна = сховати (у майстрі — вважати, що налаштування завершено)
@@ -267,14 +268,23 @@ public partial class SettingsWindow : Window
     {
         CalColors.Children.Clear();
         var urls = CalendarService.GetUrls();
+        var sources = _app.Calendar.Sources;
         CalColorsTitle.Visibility = CalColorsHint.Visibility = urls.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
         for (int i = 0; i < urls.Count; i++)
         {
             var url = urls[i];
             var current = S.CalendarColors.GetValueOrDefault(url, Palette.Accent);
-            var name = _app.Calendar.Names.GetValueOrDefault(url) ?? $"{L.T("Календар", "Calendar")} {i + 1}";
+            var src = sources.FirstOrDefault(s => s.Url == url);
+            var name = src?.Name ?? $"{L.T("Календар", "Calendar")} {i + 1}";
             var row = new StackPanel { Margin = new Thickness(0, 10, 0, 0) };
-            row.Children.Add(new TextBlock { Text = name, Foreground = Palette.Brush("#E6E8EB"), Margin = new Thickness(0, 0, 0, 6) });
+            row.Children.Add(new TextBlock { Text = name, Foreground = Palette.Brush("#E6E8EB") });
+            var (status, color) = src?.Status switch
+            {
+                RazerIsland.Calendar.CalStatus.Ok => ("✓ " + L.T("Оновлено о ", "Updated at ") + src.LastSuccess?.ToString("HH:mm"), "#8A8F98"),
+                RazerIsland.Calendar.CalStatus.Error => ("⚠ " + CalendarSource.Describe(src.Error), Palette.Red),
+                _ => (L.T("Завантажую…", "Loading…"), "#8A8F98"),
+            };
+            row.Children.Add(new TextBlock { Text = status, Foreground = Palette.Brush(color), FontSize = 11, Margin = new Thickness(0, 2, 0, 6) });
             var swatches = new WrapPanel();
             foreach (var (hex, uk, en) in Palette.CalendarColors)
             {
@@ -314,24 +324,33 @@ public partial class SettingsWindow : Window
             CalStatus.Foreground = Palette.Brush("#8A8F98");
             return;
         }
-        if (cal.LoadedCount == 0)
+        var sources = cal.Sources;
+        var failed = cal.Failed;
+        if (cal.AllFailed)
         {
-            if (cal.LastError)
-            {
-                CalStatus.Text = L.T("Не вдалося завантажити. Перевір посилання та інтернет.", "Could not load. Check the link and your internet connection.");
-                CalStatus.Foreground = Palette.Brush(Palette.Red);
-            }
-            else
-            {
-                CalStatus.Text = L.T("Завантажую…", "Loading…");
-                CalStatus.Foreground = Palette.Brush("#8A8F98");
-            }
+            var errors = failed.Select(s => s.Error).Distinct().ToList();
+            CalStatus.Text = errors.Count == 1 ? CalendarSource.Describe(errors[0]) + "." : L.T("Не вдалося завантажити календарі.", "Could not load the calendars.");
+            CalStatus.Foreground = Palette.Brush(Palette.Red);
+            return;
+        }
+        if (failed.Count > 0)
+        {
+            var list = sources.ToList();
+            var names = string.Join(", ", failed.Select(s => L.T($"«{s.Title(list.IndexOf(s))}»", $"“{s.Title(list.IndexOf(s))}”")));
+            CalStatus.Text = L.T($"Підключено {cal.OkCount} з {sources.Count}. Не працює: {names}", $"Connected {cal.OkCount} of {sources.Count}. Not working: {names}");
+            CalStatus.Foreground = Palette.Brush(Palette.Yellow);
+            return;
+        }
+        if (cal.OkCount == 0)
+        {
+            CalStatus.Text = L.T("Завантажую…", "Loading…");
+            CalStatus.Foreground = Palette.Brush("#8A8F98");
             return;
         }
         int events = cal.AllEvents.Count();
-        CalStatus.Text = "\u2713 " + (L.En
-            ? $"Calendars connected: {cal.LoadedCount} of {urls.Count}. Events in the coming week: {events}."
-            : $"Підключено календарів: {cal.LoadedCount} з {urls.Count}. Подій на найближчий тиждень: {events}.");
+        CalStatus.Text = "✓ " + (L.En
+            ? $"Calendars connected: {cal.OkCount} of {urls.Count}. Events in the coming week: {events}."
+            : $"Підключено календарів: {cal.OkCount} з {urls.Count}. Подій на найближчий тиждень: {events}.");
         CalStatus.Foreground = Palette.Brush(Palette.Green);
     }
 

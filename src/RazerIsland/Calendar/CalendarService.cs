@@ -7,13 +7,18 @@ namespace RazerIsland.Calendar;
 /// <summary>Список iCal-посилань (calendars.txt) і завантажені з них події.</summary>
 public sealed class CalendarService
 {
-    private readonly Dictionary<string, List<CalendarEvent>> _data = new();
+    // словник без локів: продовження await повертаються на UI-потік, тож не додавати ConfigureAwait(false)
+    private readonly Dictionary<string, CalendarSource> _sources = new();
+    private List<string> _urls = [];
+    private int _gen;
 
-    public bool LastError { get; private set; }
-    /// <summary>Назва календаря (X-WR-CALNAME) за посиланням.</summary>
-    public Dictionary<string, string> Names { get; } = new();
-    public int LoadedCount => _data.Count;
-    public IEnumerable<CalendarEvent> AllEvents => _data.Values.SelectMany(v => v);
+    /// <summary>Джерела в порядку calendars.txt.</summary>
+    public IReadOnlyList<CalendarSource> Sources => _urls.Where(_sources.ContainsKey).Select(u => _sources[u]).ToList();
+    /// <summary>Події з джерел, які оновлювалися не пізніше <see cref="CalendarSource.StaleAfter"/> тому.</summary>
+    public IEnumerable<CalendarEvent> AllEvents => _sources.Values.Where(s => !s.IsStale).SelectMany(s => s.Events);
+    public int OkCount => _sources.Values.Count(s => s.Status == CalStatus.Ok);
+    public IReadOnlyList<CalendarSource> Failed => Sources.Where(s => s.Status == CalStatus.Error).ToList();
+    public bool AllFailed => _sources.Count > 0 && _sources.Values.All(s => s.Status == CalStatus.Error);
 
     /// <summary>Викликається на UI-потоці після кожного завантаження.</summary>
     public event Action? Changed;
@@ -44,36 +49,57 @@ public sealed class CalendarService
 
     public void Reload()
     {
-        _data.Clear();
+        _sources.Clear();
+        _gen++; // завантаження, що ще йдуть, свій результат уже не запишуть
         Refresh();
     }
 
     public void Refresh()
     {
-        var urls = GetUrls();
-        foreach (var k in _data.Keys.Where(k => !urls.Contains(k)).ToList()) _data.Remove(k);
-        if (urls.Count == 0) { Changed?.Invoke(); return; }
-        foreach (var u in urls) _ = LoadAsync(u);
+        _urls = GetUrls().Distinct().ToList();
+        foreach (var k in _sources.Keys.Except(_urls).ToList()) _sources.Remove(k);
+        if (_urls.Count == 0) { Changed?.Invoke(); return; }
+        foreach (var u in _urls)
+        {
+            if (!_sources.TryGetValue(u, out var s)) _sources[u] = s = new CalendarSource { Url = u };
+            if (!s.Busy) _ = LoadAsync(s);
+        }
     }
 
-    private async Task LoadAsync(string url)
+    private async Task LoadAsync(CalendarSource s)
     {
+        int gen = _gen;
+        s.Busy = true;
+        CalError error;
+        string detail;
         try
         {
-            var ics = await Http.Client.GetStringAsync(url);
-            var from = DateTime.Today;
-            var events = await Task.Run(() => IcsParser.Parse(ics, from, from.AddDays(8)));
-            _data[url] = events.Select(e => e with { Calendar = url }).ToList();
-            // назва календаря, як у Google (iCal не передає кольорів — їх задають у налаштуваннях)
-            var name = System.Text.RegularExpressions.Regex.Match(ics, @"^X-WR-CALNAME:(.+?)\r?$", System.Text.RegularExpressions.RegexOptions.Multiline);
-            if (name.Success) Names[url] = name.Groups[1].Value.Trim();
-            LastError = false;
+            using var resp = await Http.Client.GetAsync(s.Url);
+            var ics = resp.IsSuccessStatusCode ? await resp.Content.ReadAsStringAsync() : "";
+            if (!resp.IsSuccessStatusCode) (error, detail) = (CalendarSource.Classify(resp.StatusCode), $"HTTP {(int)resp.StatusCode}");
+            else if (!ics.Contains("BEGIN:VCALENDAR", StringComparison.OrdinalIgnoreCase)) (error, detail) = (CalError.NotIcs, "немає BEGIN:VCALENDAR");
+            else
+            {
+                var from = DateTime.Today;
+                var events = await Task.Run(() => IcsParser.Parse(ics, from, from.AddDays(8)));
+                if (gen != _gen || _sources.GetValueOrDefault(s.Url) != s) return;
+                s.Events = events.Select(e => e with { Calendar = s.Url }).ToList();
+                // назва календаря, як у Google (iCal не передає кольорів — їх задають у налаштуваннях)
+                var name = System.Text.RegularExpressions.Regex.Match(ics, @"^X-WR-CALNAME:(.+?)\r?$", System.Text.RegularExpressions.RegexOptions.Multiline);
+                if (name.Success) s.Name = name.Groups[1].Value.Trim();
+                (s.Status, s.Error, s.LastSuccess) = (CalStatus.Ok, CalError.None, DateTime.Now);
+                Changed?.Invoke();
+                return;
+            }
         }
-        catch (Exception e)
-        {
-            LastError = true;
-            Log.Write("Календар: " + e.Message);
-        }
+        catch (Exception e) { (error, detail) = (CalendarSource.Classify(e), e.Message); }
+        finally { s.Busy = false; }
+        if (gen != _gen || _sources.GetValueOrDefault(s.Url) != s) return;
+        // події й LastSuccess не чіпаємо — це кеш до StaleAfter
+        (s.Status, s.Error) = (CalStatus.Error, error);
+        // без повного URL: він приватний
+        var host = Uri.TryCreate(s.Url, UriKind.Absolute, out var uri) ? uri.Host : "?";
+        Log.Write($"Календар «{s.Name ?? host}»: {error} — {detail}");
         Changed?.Invoke();
     }
 }

@@ -390,12 +390,15 @@ public partial class MainWindow : Window
             .Where(e => e.End > now || (e.AllDay && e.Start.Date >= now.Date))
             .OrderBy(e => e.Start).ThenBy(e => !e.AllDay)
             .Take(7).ToList();
+        var warning = cal.AllFailed && shown.Count == 0 ? null : CalWarning(cal);
         if (shown.Count == 0)
         {
-            CalHint.Text = cal.LastError && cal.LoadedCount == 0 ? L.T("Не вдалося завантажити календар. Перевір інтернет або посилання.", "Could not load the calendar. Check your internet connection or the link.")
-                : cal.LoadedCount == 0 ? L.T("Завантаження…", "Loading…")
+            var errors = cal.Sources.Select(s => s.Error).Distinct().ToList();
+            CalHint.Text = cal.AllFailed ? (errors.Count == 1 ? CalendarSource.Describe(errors[0]) : L.T("Не вдалося завантажити календарі", "Could not load the calendars"))
+                : cal.Sources.All(s => s.LastSuccess == null) ? L.T("Завантаження…", "Loading…")
                 : L.T("На найближчий тиждень подій немає.", "No events in the coming week.");
             CalHint.Visibility = Visibility.Visible;
+            if (warning != null) CalRows.Children.Add(warning);
             SyncLayout();
             return;
         }
@@ -418,8 +421,31 @@ public partial class MainWindow : Window
             }
             CalRows.Children.Add(MakeEventRow(ev, now, S.CalendarColors.GetValueOrDefault(ev.Calendar, Palette.Accent)));
         }
-        FitCalendar();
+        FitCalendar(warning);
         SyncLayout();
+    }
+
+    // сірий рядок під подіями: які календарі не оновлюються (null — усі в порядку)
+    private static TextBlock? CalWarning(CalendarService cal)
+    {
+        var failed = cal.Failed;
+        if (failed.Count == 0) return null;
+        string text;
+        if (failed.Count > 1)
+            text = L.En ? $"⚠ {failed.Count} calendars aren't updating" : $"⚠ {failed.Count} {(failed.Count < 5 ? "календарі" : "календарів")} не оновлюються";
+        else
+        {
+            var s = failed[0];
+            var name = s.Title(cal.Sources.ToList().IndexOf(s));
+            text = s.LastSuccess is not { } t
+                ? $"⚠ «{name}»: {CalendarSource.Describe(s.Error)}"
+                : L.T($"⚠ «{name}» не оновлюється з ", $"⚠ “{name}” hasn't updated since ") + t.ToString(t.Date == DateTime.Today ? "HH:mm" : "d MMM HH:mm", L.Culture);
+        }
+        return new TextBlock
+        {
+            Text = text, Foreground = Palette.Brush("#8A8F98"), FontSize = 11,
+            TextTrimming = TextTrimming.CharacterEllipsis, Margin = new Thickness(0, 6, 0, 0),
+        };
     }
 
     private static Grid MakeEventRow(CalendarEvent ev, DateTime now, string color)
@@ -451,16 +477,18 @@ public partial class MainWindow : Window
         return g;
     }
 
-    // прибрати події, що не влазять у висоту блоку батареї
-    private void FitCalendar()
+    // прибрати події, що не влазять у висоту блоку батареї; рядок-попередження лишається внизу
+    private void FitCalendar(TextBlock? footer)
     {
         var avail = GetBatteryHeight() - 18;
         var sz = new Size(260, double.PositiveInfinity);
+        int tail = 0;
+        if (footer != null) { CalRows.Children.Add(footer); tail = 1; }
         CalRows.Measure(sz);
-        while (CalRows.Children.Count > 2 && CalRows.DesiredSize.Height > avail)
+        while (CalRows.Children.Count > 2 + tail && CalRows.DesiredSize.Height > avail)
         {
-            CalRows.Children.RemoveAt(CalRows.Children.Count - 1);
-            if (CalRows.Children[^1] is TextBlock) CalRows.Children.RemoveAt(CalRows.Children.Count - 1);
+            CalRows.Children.RemoveAt(CalRows.Children.Count - 1 - tail);
+            if (CalRows.Children[^(1 + tail)] is TextBlock) CalRows.Children.RemoveAt(CalRows.Children.Count - 1 - tail);
             CalRows.Measure(sz);
         }
     }
